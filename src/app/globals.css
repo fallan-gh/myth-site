@@ -1,0 +1,67 @@
+/*globals.css*/
+
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+@theme {
+  --font-inter: var(--font-inter), sans-serif;
+  --font-playfair: var(--font-playfair), serif;
+
+  --color-myth-black: #000000;
+  --color-myth-white: #ffffff;
+  --color-myth-gray: #1a1a1a;
+}
+
+@layer base {
+  * {
+    cursor: none; /* We will use a custom cursor */
+  }
+
+  body {
+    background-color: var(--color-myth-black);
+    color: var(--color-myth-white);
+    overflow-x: hidden;
+    font-family: var(--font-inter);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-playfair);
+    text-transform: uppercase;
+  }
+}
+
+@layer utilities {
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.8);
+  }
+  
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Lenis Recommended CSS */
+html.lenis, html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
