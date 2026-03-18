@@ -3,22 +3,26 @@
 import { useState, useRef, useEffect, MouseEvent } from 'react';
 import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'framer-motion';
 import Image from 'next/image';
+import Menu3D from '@/components/canvas/Menu3D';
+import { useStore } from '@/utils/store';
+import { dict } from '@/utils/i18n';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // DATA & ASSETS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const NAV_ITEMS = [
-  { name: 'CONTRATE-NOS', img: 'https://images.unsplash.com/photo-1614729939124-032f0b56c9ce?q=80&w=1200&auto=format', target: '#contact' },
-  { name: 'SERVIÇOS',     img: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format', target: '#services' },
-  { name: 'PORTFÓLIO',    img: 'https://images.unsplash.com/photo-1542382257-8024cb5877f2?q=80&w=1200&auto=format', target: '#portfolio' }
-];
+// Navigation structure (labels come from dict dynamically)
+const NAV_TARGETS = [ '#contact', '#services', '#portfolio' ];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // COMPONENT
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Menu() {
+  const language = useStore(state => state.language);
+  const t = dict[language];
+  const navItems = [t.nav_work, t.nav_services, t.nav_portfolio];
+
   const [isOpen, setIsOpen] = useState(false);
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
@@ -121,10 +125,10 @@ export default function Menu() {
               {/* HUD Coordinates Top Left */}
               <motion.div 
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.9, duration: 1 }}
-                className="absolute top-10 left-[var(--gutter)] flex flex-col gap-1 font-mono text-[10px] text-white/40 tracking-[0.25em]"
+                className="absolute top-10 left-[var(--gutter)] flex flex-col gap-2 font-sans text-[0.6rem] text-white/40 tracking-[0.4em] uppercase"
               >
-                <span>SYS.MTX // {hoveredIndex !== null ? `TRCK_${hoveredIndex}` : 'IDLE'}</span>
-                <span className="text-[var(--gold)]">LAT: 23°33'01.9"S LON: 46°38'01.9"W</span>
+                <span>{t.nav_domain} // {hoveredIndex !== null ? `FOCUS_0${hoveredIndex + 1}` : t.nav_idle}</span>
+                <span className="text-[var(--gold)]">{t.nav_tension}</span>
               </motion.div>
 
               {/* 3D Nav Block */}
@@ -132,17 +136,17 @@ export default function Menu() {
                 className="flex flex-col items-center gap-1 md:gap-3"
                 style={{ rotateX: tiltX, rotateY: tiltY }}
               >
-                {NAV_ITEMS.map((item, index) => {
+                {navItems.map((name, index) => {
                   const isActive = hoveredIndex === index;
                   const isDimmed = hoveredIndex !== null && hoveredIndex !== index;
 
                   return (
-                    <div key={item.name} className="overflow-hidden p-1 relative"
+                    <div key={name} className="overflow-hidden p-1 relative"
                       onMouseEnter={() => setHoveredIndex(index)} 
                       onMouseLeave={() => setHoveredIndex(null)}
                     >
                       <motion.a 
-                        href={item.target}
+                        href={NAV_TARGETS[index]}
                         onClick={toggleMenu}
                         custom={index}
                         variants={textSlideVariants}
@@ -158,7 +162,7 @@ export default function Menu() {
                         `}
                         style={{ WebkitTextStroke: isActive ? 'none' : '1.5px rgba(255,255,255,0.85)' }}
                       >
-                       {item.name}
+                       {name}
 
                        {/* Hover Outline Glitch Copy */}
                        <span 
@@ -169,7 +173,7 @@ export default function Menu() {
                           `}
                           style={{ WebkitTextStroke: '2px var(--gold)' }}
                         >
-                          {item.name}
+                          {name}
                         </span>
                       </motion.a>
                     </div>
@@ -184,54 +188,33 @@ export default function Menu() {
               >
                 <Image src="/logo/white.png" alt="Myth Agency Logo" width={100} height={25} className="w-20 h-auto object-contain opacity-70" />
                 <span className="text-[9px] uppercase tracking-[0.4em] font-sans text-white/50">
-                  © 2026. ALL RIGHTS RESERVED.<br/>
-                  <span className="text-[var(--gold)] italic mt-2 inline-block">MINIMALISMO MÍTICO</span>
+                  {t.nav_rights}<br/>
+                  <span className="text-[var(--gold)] italic mt-2 inline-block">{t.nav_myth}</span>
                 </span>
               </motion.div>
             </div>
 
-            {/* ═[ RIGHT HALF: DYNAMIC MEDIA PREVIEW ]═ */}
-            <div className="hidden md:block absolute right-0 top-0 w-[45%] h-full border-l border-white/10 overflow-hidden z-0 bg-[#040404]">
-              
-              {/* Image Preloader/Container */}
-              <AnimatePresence mode="popLayout">
-                {hoveredIndex !== null ? (
-                  <motion.div
-                    key={`img-${hoveredIndex}`}
-                    initial={{ opacity: 0, scale: 1.15, filter: 'blur(20px) grayscale(100%)' }}
-                    animate={{ opacity: 0.5, scale: 1, filter: 'blur(0px) grayscale(50%)' }}
-                    exit={{ opacity: 0, scale: 1.05, filter: 'blur(10px) grayscale(100%)' }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className="absolute inset-0 w-full h-full"
-                  >
-                    {/* Parallax Image Pan */}
-                    <motion.img 
-                      src={NAV_ITEMS[hoveredIndex].img} 
-                      alt={NAV_ITEMS[hoveredIndex].name}
-                      style={{ x: moveX, y: moveY, width: 'calc(100% + 10vw)', height: 'calc(100% + 10vh)', left: '-5vw', top: '-5vh', position: 'relative' }}
-                      className="object-cover pointer-events-none mix-blend-screen opacity-90"
-                    />
-                  </motion.div>
-                ) : (
-                  /* Default Empty State */
-                  <motion.div
-                    key="img-empty"
-                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="absolute inset-0 w-full h-full flex items-center justify-center pointer-events-none"
-                  >
-                    <motion.div style={{ x: moveX, y: moveY }} className="font-serif text-[clamp(10rem,35vw,50rem)] leading-none text-white opacity-[0.015] select-none">
-                      M
-                    </motion.div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+            {/* ═[ RIGHT HALF: DYNAMIC 3D PREVIEW ]═ */}
+            <div className="hidden md:block absolute right-0 top-0 w-[45%] h-full border-l border-white/10 overflow-hidden z-[5] bg-[#020202]">
+              <Menu3D hoveredIndex={hoveredIndex} />
 
-              {/* HUD Overlay for Image */}
-              <div className="absolute inset-0 border-[2px] border-white/5 pointer-events-none m-8 mix-blend-overlay">
+              {/* HUD Overlay for 3D View */}
+              <div className="absolute inset-0 border-[2px] border-white/5 pointer-events-none m-8 mix-blend-overlay z-10">
                 <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-[var(--gold)] opacity-50" />
                 <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-[var(--gold)] opacity-50" />
               </div>
-
+              
+              <AnimatePresence>
+                {hoveredIndex !== null && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                    className="absolute bottom-12 right-12 z-10 font-sans text-[0.55rem] tracking-[0.4em] uppercase text-white/40 pointer-events-none text-right"
+                  >
+                    INTERACTIVE WEBGL COMPONENT<br/>
+                    <span className="text-[var(--gold)]">DRAG TO ROTATE SCENE</span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         )}

@@ -5,26 +5,26 @@ import GlobalCanvas from '@/components/canvas/GlobalCanvas';
 import HeroScene from '@/components/canvas/HeroScene';
 import { Metadata } from 'next';
 import { ReactNode } from 'react';
-import { Cormorant_Garamond, Manrope } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
-const cormorant = Cormorant_Garamond({
+const inter = Inter({
   subsets: ['latin'],
-  variable: '--font-cormorant'
+  variable: '--font-inter',
+  display: 'swap',
 });
-const manrope = Manrope({ subsets: ['latin'], variable: '--font-manrope' });
 
 export const metadata: Metadata = {
-  title: 'Myth Agency | Anti-Gravity Experience',
-  description: 'Design etéreo, performance brutal.',
+  title: 'MYTH | Digital Creative Studio',
+  description: 'We don\'t design brands. We build legends. High-end digital creative studio.',
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${cormorant.variable} ${manrope.variable}`}>
-      <body className="bg-transparent text-white antialiased overflow-x-hidden">
+    <html lang="en" className={`${inter.variable}`}>
+      <body className="bg-transparent text-white antialiased overflow-x-hidden pt-0 m-0">
         <SmoothScroll>
           {/* HTML Layer */}
-          <main className="relative z-10 w-full min-h-screen mix-blend-difference pointer-events-auto">
+          <main className="relative z-10 w-full min-h-screen pointer-events-auto">
             {children}
           </main>
 

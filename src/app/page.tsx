@@ -3,14 +3,15 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import {
-  motion, useMotionValue, useSpring, AnimatePresence,
-  useTransform, useScroll,
+  motion, useMotionValue, useSpring, AnimatePresence, useTransform
 } from 'framer-motion';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
 import { useStore } from '@/utils/store';
 import Menu from '@/components/ui/Menu';
 import Image from 'next/image';
+import { dict } from '@/utils/i18n';
+import LanguageSwitcher3D from '@/components/canvas/LanguageSwitcher3D';
 import './myth.css';
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -29,56 +30,19 @@ interface Project {
 // DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PROJECTS: Project[] = [
-  { index: 'I', name: 'Agrotóxica', category: 'Identidade Visual · Atlética', year: '2026', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format' },
-  { index: 'II', name: 'Embaixada Digital', category: 'Web Design · Landing Page', year: '2025', image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format' },
-  { index: 'III', name: 'Manto da Massa', category: 'Design de Camisa · Atlético', year: '2023', image: 'https://images.unsplash.com/photo-1542382257-8024cb5877f2?q=80&w=1200&auto=format' },
-];
-
-const MARQUEE_WORDS = [
-  'DESIGN ESPORTIVO',
-  'IDENTIDADE VISUAL',
-  'MOTION DESIGN',
-  'DIREÇÃO CRIATIVA'
-];
-const MARQUEE_PROJECTS = [
-  'AGROTÓXICA',
-  'MANTO DA MASSA',
-  'EMBAIXADA DIGITAL',
-  'MYTH STUDIO'
-];
-
-const PROCESS_STEPS = [
-  {
-    num: 'I',
-    title: 'Estratégia',
-    body: 'Entendemos o projeto, o público e o objetivo da marca. Toda criação começa com clareza.'
-  },
-  {
-    num: 'II',
-    title: 'Conceito',
-    body: 'Desenvolvemos a ideia central do projeto. Linguagem visual, direção estética e identidade.'
-  },
-  {
-    num: 'III',
-    title: 'Design',
-    body: 'Transformamos o conceito em peças visuais: identidade, interfaces, motion e sistemas gráficos.'
-  },
-  {
-    num: 'IV',
-    title: 'Entrega',
-    body: 'Publicação, implementação e acompanhamento. O projeto entra em campo.'
-  },
+const PROJECTS_DATA = [
+  { index: 'I', name: 'Agrotóxica', year: '2026', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format' },
+  { index: 'II', name: 'Digital Embassy', year: '2025', image: 'https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format' },
+  { index: 'III', name: 'Mass Mantle', year: '2023', image: 'https://images.unsplash.com/photo-1542382257-8024cb5877f2?q=80&w=1200&auto=format' },
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// [01] SMOOTH LOADER — Plasma Ring
+// [01] SMOOTH LOADER
 // ─────────────────────────────────────────────────────────────────────────────
 
-function SmoothLoader({ onComplete }: { onComplete: () => void }) {
+function SmoothLoader({ onComplete, text }: { onComplete: () => void, text: string }) {
   const [progress, setProgress] = useState(0);
   const [done, setDone] = useState(false);
-  const [pct, setPct] = useState(0);
 
   useEffect(() => {
     let current = 0;
@@ -101,9 +65,7 @@ function SmoothLoader({ onComplete }: { onComplete: () => void }) {
         const p = Math.min(elapsed / duration, 1);
         const ease = 1 - Math.pow(1 - p, 3);
         current = start + (target - start) * ease;
-        const val = Math.floor(current);
         setProgress(current);
-        setPct(val);
         if (p < 1) { requestAnimationFrame(tick); }
         else { current = target; step(); }
       };
@@ -119,110 +81,29 @@ function SmoothLoader({ onComplete }: { onComplete: () => void }) {
     return () => clearTimeout(completeTimer);
   }, [onComplete]);
 
-  // SVG ring math
-  const radius = 54;
-  const circumference = 2 * Math.PI * radius; // ~339.3
-  const dashOffset = circumference - (circumference * progress) / 100;
-
   return (
     <AnimatePresence>
       {!done && (
         <motion.div
           className="loader-wrap"
-          exit={{ scaleY: 0, transformOrigin: 'top center' }}
-          transition={{ duration: 1.4, ease: [0.25, 1, 0.5, 1] }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1] }}
         >
-          <div className="loader-scanlines" />
-
           {/* Big background M */}
           <div className="loader-bg-letter">M</div>
-
-          {/* ── [SCI-FI] Plasma Orbital Ring ── */}
-          <div className="scifi-loader-ring">
-            <svg viewBox="0 0 120 120" width="180" height="180" style={{ overflow: 'visible' }}>
-              {/* Outer energy orbit */}
-              <circle
-                cx="60" cy="60" r={radius}
-                fill="none"
-                stroke="rgba(200,160,80,0.12)"
-                strokeWidth="1"
-              />
-              {/* Plasma fill arc */}
-              <circle
-                cx="60" cy="60" r={radius}
-                fill="none"
-                stroke="var(--gold)"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeDasharray={circumference}
-                strokeDashoffset={dashOffset}
-                style={{
-                  transform: 'rotate(-90deg)',
-                  transformOrigin: '60px 60px',
-                  filter: 'drop-shadow(0 0 6px var(--gold))',
-                  transition: 'stroke-dashoffset 0.05s linear',
-                }}
-              />
-              {/* Inner orbit ring */}
-              <circle
-                cx="60" cy="60" r="36"
-                fill="none"
-                stroke="rgba(200,160,80,0.07)"
-                strokeWidth="0.6"
-              />
-              {/* Orbiting plasma dot */}
-              <circle
-                cx="60" cy="6" r="2.8"
-                fill="var(--gold)"
-                style={{
-                  transformOrigin: '60px 60px',
-                  animation: 'orbit-dot 1.6s linear infinite',
-                  filter: 'drop-shadow(0 0 4px var(--gold))',
-                }}
-              />
-              {/* Counter-orbit dim dot */}
-              <circle
-                cx="60" cy="114" r="1.6"
-                fill="rgba(200,160,80,0.4)"
-                style={{
-                  transformOrigin: '60px 60px',
-                  animation: 'orbit-dot 2.4s linear infinite reverse',
-                }}
-              />
-            </svg>
-
-            {/* Percentage inside ring */}
-            <div className="scifi-pct">
-              <span className="scifi-pct-num">{pct}</span>
-              <span className="scifi-pct-sym">%</span>
-            </div>
-          </div>
 
           {/* Progress bar */}
           <div className="loader-bar-wrap">
             <div className="loader-bar" style={{ width: `${progress}%` }} />
           </div>
 
-          {/* [SCI-FI] Energy pulse text — no "system" labels */}
           <motion.div
-            className="scifi-loader-label"
+            className="loader-label"
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
           >
-            ◈ MYTH ◈
+            {text}
           </motion.div>
-
-          {/* Vertical plasma line */}
-          <motion.div
-            style={{
-              position: 'absolute', top: 0, left: '50%',
-              width: 1, height: '100%', transform: 'translateX(-50%)',
-              background: 'linear-gradient(to bottom, transparent, var(--gold), transparent)',
-              opacity: 0.15,
-            }}
-            animate={{ scaleY: [0.3, 1, 0.3], opacity: [0.05, 0.2, 0.05] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-          />
         </motion.div>
       )}
     </AnimatePresence>
@@ -263,7 +144,7 @@ function useWebGL(canvasRef: React.RefObject<HTMLCanvasElement>) {
         vec2 c = gl_PointCoord - 0.5; float r = length(c);
         if (r > 0.5) discard;
         float a = (1.0 - r * 2.0) * 0.48;
-        gl_FragColor = vec4(0.78, 0.66, 0.43, a);
+        gl_FragColor = vec4(0.69, 0.55, 0.40, a);
       }`;
 
     const mkShader = (type: number, src: string) => {
@@ -318,17 +199,17 @@ function useWebGL(canvasRef: React.RefObject<HTMLCanvasElement>) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// [02] CURSOR with all states
+// [02] CURSOR
 // ─────────────────────────────────────────────────────────────────────────────
 
 function MythCursor() {
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-
   const sx = mx;
   const sy = my;
+  const cursorMode = useStore((s) => s.cursorMode);
+  const setCursorMode = useStore((s) => s.setCursorMode);
 
-  const [state, setState] = useState<'default' | 'link' | 'project' | 'cta' | 'magnetic'>('default');
   const [previewSrc, setPreviewSrc] = useState('');
   const [previewPos, setPreviewPos] = useState({ x: 0, y: 0 });
   const [showPreview, setShowPreview] = useState(false);
@@ -345,32 +226,32 @@ function MythCursor() {
       });
     };
 
-    bind('a:not([data-project]):not([data-cta]), button, [data-link], .nav-link, .footer-socials a', () => setState('link'), () => setState('default'));
+    bind('a:not([data-project]):not([data-cta]), button, [data-link], .nav-link, .footer-socials a', () => setCursorMode('link'), () => setCursorMode('default'));
 
     bind('[data-project]', (e) => {
-      setState('project');
+      setCursorMode('project');
       const t = (e as MouseEvent).currentTarget as HTMLElement;
       setPreviewSrc(t.dataset.image || '');
       setShowPreview(true);
-    }, () => { setState('default'); setShowPreview(false); },
+    }, () => { setCursorMode('default'); setShowPreview(false); },
       (e) => setPreviewPos({ x: e.clientX, y: e.clientY }));
 
-    bind('[data-cta]', () => setState('cta'), () => setState('default'));
-    bind('[data-magnetic]', () => setState('magnetic'), () => setState('default'));
+    bind('[data-cta]', () => setCursorMode('cta'), () => setCursorMode('default'));
+    bind('[data-magnetic]', () => setCursorMode('magnetic'), () => setCursorMode('default'));
 
     return () => window.removeEventListener('mousemove', move);
-  }, [mx, my]);
+  }, [mx, my, setCursorMode]);
 
   return (
     <>
-      <motion.div className={`myth-cursor${state !== 'default' ? ` cursor-state-${state}` : ''}`} style={{ x: sx, y: sy }}>
+      <motion.div className={`myth-cursor${cursorMode !== 'default' ? ` cursor-state-${cursorMode}` : ''}`} style={{ x: sx, y: sy }}>
         <AnimatePresence>
-          {state === 'project' && (
+          {cursorMode === 'project' && (
             <motion.span
               initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-              style={{ fontFamily: 'var(--mono)', fontSize: '0.42rem', letterSpacing: '0.25em', color: '#000', fontWeight: 400 }}
+              style={{ fontFamily: 'var(--sans)', fontSize: '0.45rem', letterSpacing: '0.25em', color: '#000', fontWeight: 600 }}
             >
-              VISUALIZAR
+              VIEW
             </motion.span>
           )}
         </AnimatePresence>
@@ -384,7 +265,7 @@ function MythCursor() {
             animate={{ opacity: 0.55, scale: 1, rotate: 0 }}
             exit={{ opacity: 0, scale: 0.88, rotate: 4 }}
             transition={{ type: 'spring', stiffness: 220, damping: 22 }}
-            style={{ left: previewPos.x, top: previewPos.y, marginLeft: -190, marginTop: -230 }}
+            style={{ left: previewPos.x, top: previewPos.y, marginLeft: -200, marginTop: -250 }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={previewSrc} alt="preview" />
@@ -396,7 +277,7 @@ function MythCursor() {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// [04] ENTRANCE REVEAL — hero chars
+// [04] ENTRANCE REVEAL
 // ─────────────────────────────────────────────────────────────────────────────
 
 function HeroChars({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
@@ -406,11 +287,11 @@ function HeroChars({ text, delay = 0, style }: { text: string; delay?: number; s
         <motion.span
           key={i}
           className="hero-char"
-          initial={{ y: '110%', opacity: 0, rotate: 4 }}
+          initial={{ y: '110%', opacity: 0, rotate: 6 }}
           animate={{ y: '0%', opacity: 1, rotate: 0 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + i * 0.055 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + i * 0.05 }}
         >
-          {char}
+          {char === ' ' ? '\u00A0' : char}
         </motion.span>
       ))}
     </span>
@@ -418,75 +299,7 @@ function HeroChars({ text, delay = 0, style }: { text: string; delay?: number; s
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// [05] MICRO: animated counter
-// ─────────────────────────────────────────────────────────────────────────────
-
-function AnimatedCounter({ to, suffix = '', duration = 1800 }: { to: number; suffix?: string; duration?: number }) {
-  const [value, setValue] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting) return;
-      obs.disconnect();
-      const t0 = Date.now();
-      const tick = () => {
-        const p = Math.min((Date.now() - t0) / duration, 1);
-        const ease = 1 - Math.pow(1 - p, 3);
-        setValue(Math.floor(ease * to));
-        if (p < 1) requestAnimationFrame(tick);
-        else setValue(to);
-      };
-      requestAnimationFrame(tick);
-    }, { threshold: 0.5 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [to, duration]);
-
-  return <span ref={ref}>{value}{suffix}</span>;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// [07] SCI-FI: Typewriter effect
-// ─────────────────────────────────────────────────────────────────────────────
-
-function Typewriter({ text, delay = 0 }: { text: string; delay?: number }) {
-  const [displayed, setDisplayed] = useState('');
-  const [started, setStarted] = useState(false);
-  const ref = useRef<HTMLSpanElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { obs.disconnect(); setTimeout(() => setStarted(true), delay * 1000); }
-    }, { threshold: 0.5 });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, [delay]);
-
-  useEffect(() => {
-    if (!started) return;
-    let i = 0;
-    const timer = setInterval(() => {
-      setDisplayed(text.slice(0, ++i));
-      if (i >= text.length) clearInterval(timer);
-    }, 42);
-    return () => clearInterval(timer);
-  }, [started, text]);
-
-  return (
-    <span ref={ref}>
-      {displayed}
-      {displayed.length < text.length && <span className="typewriter-cursor" />}
-    </span>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// [03] 3D CARD TILT (service cards)
+// [03] 3D CARD TILT
 // ─────────────────────────────────────────────────────────────────────────────
 
 function Card3D({ children, className = '' }: { children: React.ReactNode; className?: string }) {
@@ -501,7 +314,7 @@ function Card3D({ children, className = '' }: { children: React.ReactNode; class
     const rotX = (y - 0.5) * -12;
     const rotY = (x - 0.5) * 12;
 
-    el.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02,1.02,1.02)`;
+    el.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale3d(1.02,1.02,1.02)`;
     el.style.setProperty('--mx', `${x * 100}%`);
     el.style.setProperty('--my', `${y * 100}%`);
   }, []);
@@ -509,7 +322,7 @@ function Card3D({ children, className = '' }: { children: React.ReactNode; class
   const onMouseLeave = useCallback(() => {
     const el = cardRef.current;
     if (!el) return;
-    el.style.transform = 'perspective(800px) rotateX(0) rotateY(0) scale3d(1,1,1)';
+    el.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1,1,1)';
     el.style.transition = 'transform 0.6s cubic-bezier(0.16,1,0.3,1)';
     setTimeout(() => { if (el) el.style.transition = ''; }, 650);
   }, []);
@@ -583,6 +396,29 @@ function Marquee({ items, reverse = false, isGold = false }: { items: string[]; 
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// PAGE CURTAIN
+// ─────────────────────────────────────────────────────────────────────────────
+
+function PageCurtain() {
+  const [visible, setVisible] = useState(true);
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.div
+          className="myth-curtain"
+          initial={{ scaleY: 1 }}
+          animate={{ scaleY: 0 }}
+          exit={{ scaleY: 0 }}
+          transition={{ duration: 1.4, ease: [0.25, 1, 0.5, 1], delay: 0.1 }}
+          style={{ transformOrigin: 'top center', zIndex: 99998 }}
+          onAnimationComplete={() => setVisible(false)}
+        />
+      )}
+    </AnimatePresence>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // [05] MICRO: click ripple hook
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -607,171 +443,17 @@ function useRipple(ref: React.RefObject<HTMLElement>) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// PAGE CURTAIN
-// ─────────────────────────────────────────────────────────────────────────────
-
-function PageCurtain() {
-  const [visible, setVisible] = useState(true);
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="myth-curtain"
-          initial={{ scaleY: 1 }}
-          animate={{ scaleY: 0 }}
-          exit={{ scaleY: 0 }}
-          transition={{ duration: 1.6, ease: [0.25, 1, 0.5, 1], delay: 0.1 }}
-          style={{ transformOrigin: 'top center', zIndex: 99998 }}
-          onAnimationComplete={() => setVisible(false)}
-        >
-          <motion.div
-            style={{ position: 'absolute', top: 0, left: '50%', width: 1, height: '100%', transform: 'translateX(-50%)', background: 'linear-gradient(to bottom, transparent, var(--gold), transparent)' }}
-            initial={{ scaleY: 0, opacity: 0 }}
-            animate={{ scaleY: 1, opacity: [0, 1, 0] }}
-            transition={{ duration: 1.2, ease: 'easeInOut' }}
-          />
-        </motion.div>
-      )}
-    </AnimatePresence>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// [SCI-FI] PLASMA CORNER EMITTERS — replaces .hud-corner
-// ─────────────────────────────────────────────────────────────────────────────
-
-function PlasmaCorners() {
-  return (
-    <>
-      <div className="plasma-corner plasma-corner--tl">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M1 27 L1 1 L27 1" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="1" cy="1" r="2.2" fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 4px var(--gold))' }} />
-        </svg>
-        <span className="plasma-corner-beam plasma-corner-beam--h" />
-        <span className="plasma-corner-beam plasma-corner-beam--v" />
-      </div>
-
-      <div className="plasma-corner plasma-corner--tr">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M27 27 L27 1 L1 1" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="27" cy="1" r="2.2" fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 4px var(--gold))' }} />
-        </svg>
-        <span className="plasma-corner-beam plasma-corner-beam--h plasma-corner-beam--right" />
-        <span className="plasma-corner-beam plasma-corner-beam--v" />
-      </div>
-
-      <div className="plasma-corner plasma-corner--bl">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M1 1 L1 27 L27 27" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="1" cy="27" r="2.2" fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 4px var(--gold))' }} />
-        </svg>
-        <span className="plasma-corner-beam plasma-corner-beam--h" />
-        <span className="plasma-corner-beam plasma-corner-beam--v plasma-corner-beam--bottom" />
-      </div>
-
-      <div className="plasma-corner plasma-corner--br">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M27 1 L27 27 L1 27" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round" />
-          <circle cx="27" cy="27" r="2.2" fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 4px var(--gold))' }} />
-        </svg>
-        <span className="plasma-corner-beam plasma-corner-beam--h plasma-corner-beam--right" />
-        <span className="plasma-corner-beam plasma-corner-beam--v plasma-corner-beam--bottom" />
-      </div>
-    </>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// [SCI-FI] WARP SCAN — hero entrance line effect
-// ─────────────────────────────────────────────────────────────────────────────
-
-function WarpScan({ delay = 0.8 }: { delay?: number }) {
-  return (
-    <motion.div
-      className="warp-scan-wrap"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ delay, duration: 0.4 }}
-    >
-      {/* Horizontal energy line */}
-      <motion.div
-        className="warp-scan-line"
-        initial={{ scaleX: 0, opacity: 0 }}
-        animate={{ scaleX: [0, 1, 1, 0], opacity: [0, 1, 0.6, 0] }}
-        transition={{ duration: 1.8, ease: [0.16, 1, 0.3, 1], delay, times: [0, 0.3, 0.7, 1] }}
-      />
-      {/* Glow pulse at start */}
-      <motion.div
-        className="warp-scan-node"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: [0, 1, 0], scale: [0, 1.4, 0] }}
-        transition={{ duration: 1.2, ease: 'easeOut', delay: delay + 0.1 }}
-      />
-      {/* Data fragments flying right */}
-      {[0, 1, 2].map((i) => (
-        <motion.span
-          key={i}
-          className="warp-scan-frag"
-          initial={{ x: 0, opacity: 0 }}
-          animate={{ x: [0, 40 + i * 20], opacity: [0, 0.7, 0] }}
-          transition={{ duration: 0.9, ease: 'easeOut', delay: delay + 0.2 + i * 0.08 }}
-          style={{ left: `${18 + i * 6}%` }}
-        />
-      ))}
-    </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// [SCI-FI] HOLOGRAPHIC BADGE — replaces hud-chip
-// ─────────────────────────────────────────────────────────────────────────────
-
-function HoloBadge({ delay = 0.6 }: { delay?: number }) {
-  return (
-    <motion.div
-      className="holo-badge"
-      initial={{ opacity: 0, y: -12, filter: 'blur(8px)' }}
-      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-      transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay }}
-    >
-      {/* Left plasma dot */}
-      <motion.span
-        className="holo-badge-dot"
-        animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.3, 1] }}
-        transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-      />
-      {/* Shimmer line */}
-      <span className="holo-badge-shimmer" />
-      {/* Text */}
-      <span className="holo-badge-text">MYTH · V2</span>
-      {/* Right energy bar */}
-      <span className="holo-badge-bar">
-        <motion.span
-          className="holo-badge-bar-fill"
-          animate={{ scaleX: [0.2, 1, 0.2] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-          style={{ transformOrigin: 'left center' }}
-        />
-      </span>
-      {/* Corner accent */}
-      <span className="holo-badge-corner" />
-    </motion.div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
 // MAIN PAGE
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
+  const language = useStore((s) => s.language);
+  const t = dict[language];
+
   const containerRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const heroMRef = useRef<HTMLDivElement>(null);
   const heroContentRef = useRef<HTMLDivElement>(null);
   const spineFillRef = useRef<HTMLDivElement>(null);
-  const orb1Ref = useRef<HTMLDivElement>(null);
-  const orb2Ref = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
 
   const setScrollProgress = useStore((s) => s.setScrollProgress);
@@ -779,60 +461,11 @@ export default function Home() {
 
   const [loaded, setLoaded] = useState(false);
 
-  // [03] Hero 3D mouse tilt
-  const heroMouseX = useMotionValue(0);
-  const heroMouseY = useMotionValue(0);
-  const tiltX = useSpring(useTransform(heroMouseY, [-0.5, 0.5], [12, -12]), { stiffness: 160, damping: 35 });
-  const tiltY = useSpring(useTransform(heroMouseX, [-0.5, 0.5], [-12, 12]), { stiffness: 160, damping: 35 });
-
-  const handleHeroMouseMove = useCallback((e: React.MouseEvent) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    heroMouseX.set((e.clientX - r.left) / r.width - 0.5);
-    heroMouseY.set((e.clientY - r.top) / r.height - 0.5);
-  }, [heroMouseX, heroMouseY]);
-
-  // WebGL
+  // WebGL Particles
   useWebGL(canvasRef as React.RefObject<HTMLCanvasElement>);
 
   // CTA ripple
   useRipple(ctaRef as React.RefObject<HTMLElement>);
-
-  // [06] Scroll-driven parallax (raw, no GSAP)
-  useEffect(() => {
-    const heroM = heroMRef.current;
-    const heroCont = heroContentRef.current;
-    const spine = spineFillRef.current;
-    const orb1 = orb1Ref.current;
-    const orb2 = orb2Ref.current;
-
-    const onScroll = () => {
-      const sy = window.scrollY;
-      const vh = window.innerHeight;
-
-      if (heroM) heroM.style.transform = `translate(-50%, calc(-50% + ${sy * 0.22}px))`;
-
-      if (heroCont) {
-        const prog = Math.min(sy / vh, 1);
-        heroCont.style.transform = `translateY(${-sy * 0.28}px)`;
-        heroCont.style.opacity = String(Math.max(0, 1 - prog * 1.65));
-      }
-
-      if (orb1) orb1.style.transform = `translateY(${sy * 0.18}px)`;
-      if (orb2) orb2.style.transform = `translateY(${-sy * 0.12}px)`;
-
-      if (spine) {
-        const processEl = document.getElementById('process');
-        if (processEl) {
-          const rect = processEl.getBoundingClientRect();
-          const pct = 1 - Math.max(0, Math.min(1, rect.bottom / (vh + processEl.offsetHeight)));
-          spine.style.height = `${pct * 100}%`;
-        }
-      }
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   // GSAP
   useEffect(() => {
@@ -855,32 +488,28 @@ export default function Home() {
 
       gsap.fromTo('.hero-subtitle',
         { opacity: 0, filter: 'blur(18px)', y: 18 },
-        { opacity: 1, filter: 'blur(0px)', y: 0, duration: 1.8, ease: 'power3.out', delay: 1.5 }
+        { opacity: 1, filter: 'blur(0px)', y: 0, duration: 2, ease: 'power3.out', delay: 1.6 }
       );
       gsap.fromTo('.scroll-cue',
         { opacity: 0 },
-        { opacity: 0.45, duration: 1.2, ease: 'power2.out', delay: 2.4 }
-      );
-      gsap.fromTo('.hero-stats',
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 1, ease: 'power3.out', delay: 2 }
+        { opacity: 1, duration: 1.5, ease: 'power2.out', delay: 2.5 }
       );
 
       gsap.utils.toArray('.service-card').forEach((el, i) => {
         gsap.fromTo(el as Element,
-          { opacity: 0, y: 40 },
+          { opacity: 0, y: 50 },
           {
-            opacity: 1, y: 0, duration: 1.1, ease: 'power3.out', delay: i * 0.1,
-            scrollTrigger: { trigger: el as Element, start: 'top 88%' }
+            opacity: 1, y: 0, duration: 1.2, ease: 'power3.out', delay: i * 0.15,
+            scrollTrigger: { trigger: el as Element, start: 'top 85%' }
           }
         );
       });
 
       gsap.utils.toArray('.project-row').forEach((el, i) => {
         gsap.fromTo(el as Element,
-          { opacity: 0, y: 32, rotateX: -8, transformOrigin: 'top center' },
+          { opacity: 0, y: 40, rotateX: -8, transformOrigin: 'top center' },
           {
-            opacity: 1, y: 0, rotateX: 0, duration: 1.1, ease: 'power3.out', delay: i * 0.12,
+            opacity: 1, y: 0, rotateX: 0, duration: 1.2, ease: 'power3.out', delay: i * 0.1,
             scrollTrigger: { trigger: el as Element, start: 'top 90%' }
           }
         );
@@ -890,45 +519,57 @@ export default function Home() {
         trigger: '#portfolio', start: 'top bottom', end: 'bottom top', scrub: true,
         onUpdate: (self) => {
           const el = document.getElementById('portfolio');
-          if (el) el.style.transform = `perspective(1400px) rotateX(${(1 - self.progress) * 3.2}deg)`;
+          if (el) el.style.transform = `perspective(1400px) rotateX(${(1 - self.progress) * 4}deg)`;
         },
+      });
+
+      // Spine progress
+      ScrollTrigger.create({
+        trigger: '#process', start: 'top center', end: 'bottom center', scrub: true,
+        onUpdate: (self) => {
+          if (spineFillRef.current) spineFillRef.current.style.height = `${self.progress * 100}%`;
+        }
       });
 
       gsap.utils.toArray('.process-step').forEach((el, i) => {
         gsap.fromTo(el as Element,
-          { opacity: 0, x: 24 },
+          { opacity: 0, x: 30 },
           {
-            opacity: 1, x: 0, duration: 1, ease: 'power3.out', delay: i * 0.14,
+            opacity: 1, x: 0, duration: 1.2, ease: 'power3.out', delay: i * 0.1,
             scrollTrigger: { trigger: el as Element, start: 'top 88%' }
           }
         );
       });
 
       gsap.fromTo('.cta-title',
-        { scale: 0.88, opacity: 0, filter: 'blur(12px)' },
+        { scale: 0.9, opacity: 0, filter: 'blur(12px)' },
         {
-          scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.4, ease: 'power3.out',
+          scale: 1, opacity: 1, filter: 'blur(0px)', duration: 1.5, ease: 'power3.out',
           scrollTrigger: { trigger: '#contact', start: 'top 75%' }
         }
       );
 
-      gsap.to('.contact-rays', { rotation: 360, duration: 90, ease: 'none', repeat: -1 });
-
       gsap.utils.toArray('.portfolio-heading').forEach(el => {
         gsap.to(el as Element, {
-          y: '-8vh', ease: 'none',
+          y: '-10vh', ease: 'none',
           scrollTrigger: { trigger: el as Element, start: 'top bottom', end: 'bottom top', scrub: true },
         });
       });
 
       gsap.utils.toArray('.section-label').forEach(el => {
         gsap.fromTo(el as Element,
-          { opacity: 0, x: -16 },
+          { opacity: 0, x: -20 },
           {
-            opacity: 1, x: 0, duration: 0.8, ease: 'power2.out',
+            opacity: 1, x: 0, duration: 1, ease: 'power2.out',
             scrollTrigger: { trigger: el as Element, start: 'top 90%' }
           }
         );
+      });
+      
+      // Hero Parallax Setup
+      gsap.to(heroContentRef.current, {
+        y: 200, opacity: 0, filter: 'blur(10px)', ease: 'none',
+        scrollTrigger: { trigger: '#hero', start: 'top top', end: 'bottom top', scrub: true }
       });
 
     }, containerRef);
@@ -939,25 +580,22 @@ export default function Home() {
   useEffect(() => {
     const io = new IntersectionObserver(entries => {
       entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
-    }, { threshold: 0.07, rootMargin: '0px 0px -40px 0px' });
+    }, { threshold: 0.05, rootMargin: '0px 0px -40px 0px' });
     document.querySelectorAll('.reveal-up, .reveal-clip, .reveal-scale').forEach(el => io.observe(el));
     return () => io.disconnect();
   }, []);
 
   return (
     <>
-      {/* [01] Smooth Loader — plasma ring variant */}
-      <SmoothLoader onComplete={() => setLoaded(true)} />
-
+      <SmoothLoader onComplete={() => setLoaded(true)} text={t.loader} />
       <MythCursor />
       <PageCurtain />
 
-      {/* [07] Scanlines overlay */}
-      <div className="myth-scanlines" />
-      {/* Grain */}
+      {/* Grain overlay */}
       <div className="myth-grain" />
 
       <Menu />
+      <LanguageSwitcher3D />
 
       {/* Global Fixed Navigation */}
       <nav>
@@ -966,166 +604,93 @@ export default function Home() {
         </a>
       </nav>
 
-      <main ref={containerRef} className="relative w-full z-10" style={{ background: 'var(--black)', color: 'var(--white)' }}>
+      <main ref={containerRef} className="relative w-full z-10">
 
         {/* ═══════════════════════════════ 01 HERO ═══════════════════════════════ */}
-        <section
-          id="hero"
-          className="scroll-section hero-section"
-          onMouseMove={handleHeroMouseMove}
-        >
-          {/* [SCI-FI] Plasma corner emitters */}
-          <PlasmaCorners />
-
+        <section id="hero" className="scroll-section hero-section">
           {/* WebGL particles */}
           <canvas ref={canvasRef} className="gl-canvas" />
 
-          {/* [06] Parallax orbs */}
-          <div ref={orb1Ref} className="hero-orb hero-orb--1" />
-          <div ref={orb2Ref} className="hero-orb hero-orb--2" />
-
-          {/* [SCI-FI] Quantum energy grid lines */}
-          <div className="quantum-grid" aria-hidden="true">
-            <div className="quantum-grid-h" />
-            <div className="quantum-grid-h quantum-grid-h--2" />
-            <div className="quantum-grid-v" />
-          </div>
-
-          {/* [03] 3D tilt on background M */}
-          <motion.div
-            ref={heroMRef}
-            className="hero-bg-letter"
-            style={{ rotateX: tiltX, rotateY: tiltY }}
-          >
-            M
-          </motion.div>
-
-          {/* [07] Sci-fi glitch line */}
-          <div className="hero-glitch-line" />
+          {/* Background Letter M */}
+          <div className="hero-bg-letter">M</div>
 
           <div ref={heroContentRef} className="hero-content">
-
-            {/* [SCI-FI] Holographic badge — replaces hud-chip */}
-            <div style={{ marginBottom: '1.5rem' }}>
-              <HoloBadge delay={0.6} />
-            </div>
-
-            {/* [SCI-FI] Warp scan entrance — replaces eyebrow with location text */}
-            <WarpScan delay={0.9} />
-
-            {/* [04] Char-by-char entrance reveal */}
             <h1 className="hero-title">
               <span className="hero-title-line">
-                <HeroChars text="Myth" delay={0.7} style={{ color: 'var(--gold)', fontStyle: 'italic' }} />
+                <HeroChars text={t.hero_create} delay={0.6} />
               </span>
-              <span className="hero-title-line" style={{ marginLeft: 'clamp(3rem, 10vw, 12rem)' }}>
-                <HeroChars text="Agency" delay={0.82} />
+              <span className="hero-title-line" style={{ marginLeft: 'clamp(2rem, 15vw, 18rem)' }}>
+                <HeroChars text={t.hero_your} delay={0.7} style={{ color: 'var(--gold)' }} />
+              </span>
+              <span className="hero-title-line">
+                <HeroChars text={t.hero_legend} delay={0.8} style={{ fontStyle: 'italic' }} />
               </span>
             </h1>
 
-            {/* Subtitle */}
             <div className="hero-subtitle">
-              <p>
-                Arquitetura digital de alto contraste.<br />
-                Forjamos experiências estéticas absolutas,<br />
-                desafiando a gravidade e o ordinário.<br />
-                Para marcas que desejam transcender.
-              </p>
-            </div>
-
-            {/* [05] Micro: animated stats */}
-            <div className="hero-stats">
-              {[
-                { n: 2, suffix: '+', label: 'Projetos' },
-                { n: 100, suffix: '%', label: 'Custom' },
-                { n: 1, suffix: ' Sites', label: 'Desenvolvidos' }
-              ].map((s) => (
-                <div key={s.label} className="stat-item">
-                  <span className="stat-number">
-                    <AnimatedCounter to={s.n} suffix={s.suffix} />
-                  </span>
-                  <span className="stat-label">{s.label}</span>
-                </div>
-              ))}
+              <p dangerouslySetInnerHTML={{ __html: t.hero_desc }} />
             </div>
           </div>
 
-          {/* Scroll cue */}
           <div className="scroll-cue">
-            <span className="scroll-cue-text">Rolar</span>
+            <span className="scroll-cue-text">{t.hero_scroll}</span>
             <motion.div
               className="scroll-cue-bar"
-              animate={{ scaleY: [0, 1, 0], y: [0, 0, 22] }}
+              animate={{ scaleY: [0, 1, 0] }}
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ height: '40px' }}
             />
           </div>
         </section>
 
-        <Marquee items={MARQUEE_WORDS} />
+        <Marquee items={t.marquee_words} />
 
         {/* ═══════════════════════════════ 02 SERVICES ═══════════════════════════ */}
         <section id="services" className="scroll-section services-section">
-          {/* [SCI-FI] Plasma corners */}
-          <div className="plasma-corner plasma-corner--tr">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <path d="M27 27 L27 1 L1 1" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round" />
-              <circle cx="27" cy="1" r="2.2" fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 4px var(--gold))' }} />
-            </svg>
-          </div>
+          <p className="section-label">{t.sec_pillars}</p>
 
-          <p className="section-label">— O Rito / 02</p>
+          <h2 className="services-heading" dangerouslySetInnerHTML={{ __html: t.svc_heading1 + '<em>' + t.svc_heading2 + '</em>' + t.svc_heading3 }} />
 
-          <h2 className="services-heading">
-            Elevando marcas através<br />
-            da tensão entre <em>espaço estrutural</em><br />
-            e estética brutalista.
-          </h2>
-
-          {/* [03] 3D tilt cards */}
           <div className="services-grid">
-            {[
-              { num: '01', title: ['Identidade', 'Divina'], desc: 'Design de logotipos e sistemas visuais minimalistas com impacto máximo. Cada símbolo é um manifesto.' },
-              { num: '02', title: ['Interfaces', '3D'], desc: 'Experiências web imersivas integrando WebGL e geometrias tridimensionais que habitam o espaço digital.' },
-              { num: '03', title: ['Motion', 'Cinematic'], desc: 'Interações em tempo real que parecem respirar sob os dedos do usuário. Movimento como linguagem.' },
-              { num: '04', title: ['E-Commerce', 'Elevado'], desc: 'Plataformas de venda que convertem através do desejo estético. Beleza a serviço da conversão.' },
-            ].map((card) => (
+            {t.svc_cards.map((card) => (
               <Card3D key={card.num}>
-                <div className="service-num">{card.num} // SISTEMA</div>
-                <h3 className="service-title">
-                  {card.title.map((l, i) => <span key={i} style={{ display: 'block' }}>{l}</span>)}
-                </h3>
+                <div className="service-num">{card.num} // {t.svc_domain}</div>
+                <h3 className="service-title">{card.title}</h3>
                 <p className="service-desc">{card.desc}</p>
               </Card3D>
             ))}
           </div>
         </section>
 
-        <Marquee items={MARQUEE_PROJECTS} reverse isGold />
+        {/* ═══════════════════════════════ 03 PHILOSOPHY ═════════════════════════ */}
+        <section id="philosophy" className="scroll-section philosophy-section">
+          <h2 className="philosophy-text" dangerouslySetInnerHTML={{ __html: t.phil_text }} />
+        </section>
 
-        {/* ═══════════════════════════════ 03 PORTFOLIO ══════════════════════════ */}
+        <Marquee items={t.marquee_projects} reverse isGold />
+
+        {/* ═══════════════════════════════ 04 PORTFOLIO ══════════════════════════ */}
         <section id="portfolio" className="scroll-section portfolio-section">
-          <p className="portfolio-count">— Obras / 03</p>
+          <p className="section-label" style={{ marginBottom: '1rem' }}>{t.port_label}</p>
 
-          <h2 className="portfolio-heading" data-text="Port" style={{ position: 'relative' }}>
-            <span className="glitch-text" data-text="Port">Port</span>
-            <br /><em>fólio</em>
+          <h2 className="portfolio-heading">
+            {t.port_title}
           </h2>
 
           <div className="project-list">
-            {PROJECTS.map((project) => (
+            {PROJECTS_DATA.map((project, idx) => (
               <a
                 key={project.index}
                 href="#"
                 className="project-row"
                 data-project
                 data-image={project.image}
-                style={{ display: 'flex' }}
               >
                 <div className="project-row-wash" />
                 <div className="project-index">{project.index}</div>
                 <div className="project-name">{project.name}</div>
                 <div className="project-meta">
-                  <span className="project-category">{project.category}</span>
+                  <span className="project-category">{t.project_cats[idx]}</span>
                   <span className="project-year">{project.year}</span>
                 </div>
               </a>
@@ -1133,23 +698,15 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ═══════════════════════════════ 04 PROCESS ════════════════════════════ */}
+        {/* ═══════════════════════════════ 05 PROCESS ════════════════════════════ */}
         <section id="process" className="scroll-section process-section">
-          {/* [SCI-FI] Plasma corner */}
-          <div className="plasma-corner plasma-corner--bl">
-            <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-              <path d="M1 1 L1 27 L27 27" stroke="var(--gold)" strokeWidth="1.2" strokeLinecap="round" />
-              <circle cx="1" cy="27" r="2.2" fill="var(--gold)" style={{ filter: 'drop-shadow(0 0 4px var(--gold))' }} />
-            </svg>
-          </div>
+          <p className="section-label" style={{ marginBottom: '4rem' }}>{t.proc_label}</p>
 
           <div className="process-grid">
             <div className="process-left">
-              <h2 className="process-heading">
-                A<br /><em>Forja</em>.
-              </h2>
-              <p className="process-subtext" style={{ fontStyle: 'italic', fontFamily: 'var(--mono)', fontSize: '0.78rem', letterSpacing: '0.05em' }}>
-                <Typewriter text="Nosso processo é um rito. Rejeitamos o template. Exigimos o autêntico." delay={0.3} />
+              <h2 className="process-heading" dangerouslySetInnerHTML={{ __html: t.proc_forge }} />
+              <p className="process-subtext">
+                {t.proc_sub}
               </p>
             </div>
 
@@ -1157,7 +714,7 @@ export default function Home() {
               <div className="process-spine">
                 <div ref={spineFillRef} className="process-spine-fill" style={{ height: '0%' }} />
               </div>
-              {PROCESS_STEPS.map((step) => (
+              {t.proc_steps.map((step) => (
                 <div key={step.num} className="process-step">
                   <div className="process-dot" />
                   <div className="step-num">{step.num}</div>
@@ -1169,42 +726,35 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ═══════════════════════════════ 05 CONTACT ════════════════════════════ */}
+        {/* ═══════════════════════════════ 06 CONTACT ════════════════════════════ */}
         <section id="contact" className="scroll-section contact-section">
-          {/* [SCI-FI] Plasma corners on contact */}
-          <PlasmaCorners />
+          <p className="contact-label">{t.contact_next}</p>
 
-          <div className="contact-rays" />
-          <p className="contact-label">O Próximo Passo</p>
-
-          {/* [02] Magnetic CTA */}
           <MagneticWrap strength={0.4}>
             <a
               ref={ctaRef}
-              href="mailto:contato@mythagency.com"
+              href="mailto:contact@mythagency.com"
               className="cta-link"
               data-cta
             >
               <h2 className="cta-title">
-                Criar<br />
-                <em style={{ fontStyle: 'italic' }}>O Mito</em>
+                <span dangerouslySetInnerHTML={{ __html: t.cta_title1 }} />
+                <em style={{ fontStyle: 'italic' }}>{t.cta_title2}</em>
               </h2>
               <div className="cta-sub">
                 <span className="cta-rule" />
-                INICIAR PROJETO
+                {t.cta_start}
                 <span className="cta-rule" />
               </div>
             </a>
           </MagneticWrap>
 
-          <div className="contact-footer flex items-center justify-between w-full px-[var(--gutter)] border-t border-white/10 pt-4">
+          <div className="contact-footer w-full">
             <div className="flex items-center gap-4 opacity-50">
               <Image src="/logo/white.png" alt="Myth Agency Logo" width={80} height={20} className="w-16 h-auto object-contain" />
-              <span style={{ fontFamily: 'var(--sans)', fontSize: '0.5rem', letterSpacing: '0.3em' }}>
-                © 2026
-              </span>
+              <span>{t.nav_rights}</span>
             </div>
-            <div className="footer-socials flex gap-4 text-[0.6rem] tracking-[0.2em] font-sans opacity-70">
+            <div className="footer-socials">
               <a href="#" className="hover:text-white transition-colors" data-link>INSTAGRAM</a>
               <a href="#" className="hover:text-white transition-colors" data-link>TWITTER</a>
               <a href="#" className="hover:text-white transition-colors" data-link>LINKEDIN</a>

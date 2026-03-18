@@ -4,12 +4,13 @@
 @plugin "tailwindcss-animate";
 
 @theme {
-  --font-inter: var(--font-inter), sans-serif;
-  --font-playfair: var(--font-playfair), serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-serif: var(--font-page-serif), ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
-  --color-myth-black: #000000;
-  --color-myth-white: #ffffff;
-  --color-myth-gray: #1a1a1a;
+  --color-myth-black: #050505;
+  --color-myth-graphite: #0a0a0a;
+  --color-myth-white: #E8E4DE;
+  --color-myth-gold: #B08E68;
 }
 
 @layer base {
@@ -21,11 +22,11 @@
     background-color: var(--color-myth-black);
     color: var(--color-myth-white);
     overflow-x: hidden;
-    font-family: var(--font-inter);
+    font-family: var(--font-sans);
   }
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-playfair);
+    font-family: var(--font-serif);
     text-transform: uppercase;
   }
 }
