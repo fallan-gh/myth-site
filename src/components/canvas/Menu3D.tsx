@@ -5,17 +5,22 @@ import { Float, MeshDistortMaterial, Environment, Sparkles, Stars, PresentationC
 import { useRef } from 'react';
 import * as THREE from 'three';
 
+const tmpVector = new THREE.Vector3();
+
 function MenuShape({ hoveredIndex }: { hoveredIndex: number | null }) {
   const meshRef = useRef<THREE.Mesh>(null);
   
   useFrame((state, delta) => {
+    // [120FPS OPTIMIZATION]: Removed `new THREE.Vector3()` instantiation inside `useFrame`
+    // to prevent memory allocation and garbage collection stutters.
     if (meshRef.current) {
       meshRef.current.rotation.x += delta * 0.2;
       meshRef.current.rotation.y += delta * 0.3;
       
       // Scale up and change distortion based on hover
       const targetScale = hoveredIndex !== null ? 1.8 : 1.2;
-      meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.05);
+      tmpVector.set(targetScale, targetScale, targetScale);
+      meshRef.current.scale.lerp(tmpVector, 0.05);
     }
   });
 
@@ -41,7 +46,7 @@ function MenuShape({ hoveredIndex }: { hoveredIndex: number | null }) {
 export default function Menu3D({ hoveredIndex }: { hoveredIndex: number | null }) {
   return (
     <div className="absolute inset-0 z-0 pointer-events-auto">
-      <Canvas camera={{ position: [0, 0, 6], fov: 45 }} gl={{ alpha: true, antialias: true }}>
+      <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 6], fov: 45 }} gl={{ alpha: true, antialias: true }}>
         <ambientLight intensity={0.5} />
         <directionalLight position={[10, 10, 5]} intensity={2} color="#B08E68" />
         

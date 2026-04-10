@@ -127,7 +127,7 @@ export default function Menu() {
               {/* HUD Coordinates Top Left */}
               <motion.div 
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.9, duration: 1 }}
-                className="absolute top-10 left-[var(--gutter)] flex flex-col gap-2 font-sans text-[0.6rem] text-white/60 tracking-[0.4em] uppercase"
+                className="absolute top-10 left-[var(--gutter)] flex flex-col gap-2 font-mono text-[9px] text-white/60 tracking-widest uppercase"
               >
                 <span>{t.nav_domain} // {hoveredIndex !== null ? `FOCUS_0${hoveredIndex + 1}` : t.nav_idle}</span>
                 <span className="text-[var(--gold)]">{t.nav_tension}</span>
@@ -165,7 +165,7 @@ export default function Menu() {
                         exit="closed"
                         data-link
                         className={`
-                          group relative block w-full uppercase font-sans leading-[0.85] tracking-tight cursor-none text-center
+                          group relative block w-full uppercase font-serif font-black leading-[0.85] tracking-tight cursor-none text-center
                           text-[clamp(4rem,7vw,9rem)] transition-all duration-[0.45s] ease-[var(--ease-out)]
                           ${isDimmed ? 'opacity-20 blur-[3px]' : 'opacity-100'}
                           ${isActive ? 'z-10 tracking-wide text-[var(--gold)] scale-[1.03]' : 'text-transparent'}
@@ -197,7 +197,7 @@ export default function Menu() {
                 className="absolute bottom-10 left-[var(--gutter)] flex flex-col gap-3"
               >
                 <Image src="/logo/white.png" alt="Myth Agency Logo" width={100} height={25} className="w-20 h-auto object-contain opacity-70" />
-                <span className="text-[9px] uppercase tracking-[0.4em] font-sans text-white/50">
+                <span className="font-mono text-[9px] tracking-widest uppercase text-white/50">
                   {t.nav_rights}<br/>
                   <span className="text-[var(--gold)] italic mt-2 inline-block">{t.nav_myth}</span>
                 </span>
@@ -218,7 +218,7 @@ export default function Menu() {
                 {hoveredIndex !== null && (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                    className="absolute bottom-12 right-12 z-10 font-sans text-[0.55rem] tracking-[0.4em] uppercase text-white/60 pointer-events-none text-right"
+                    className="absolute bottom-12 right-12 z-10 font-mono text-[9px] tracking-widest uppercase text-white/60 pointer-events-none text-right"
                   >
                     INTERACTIVE WEBGL COMPONENT<br/>
                     <span className="text-[var(--gold)]">DRAG TO ROTATE SCENE</span>

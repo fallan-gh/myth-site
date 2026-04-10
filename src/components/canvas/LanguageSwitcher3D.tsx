@@ -69,7 +69,7 @@ export default function LanguageSwitcher3D() {
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
     >
       <div className="absolute inset-0 pointer-events-none">
-        <Canvas camera={{ position: [0, 0, 4.5], fov: 45 }} gl={{ alpha: true }}>
+        <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 4.5], fov: 45 }} gl={{ alpha: true }}>
           <ambientLight intensity={0.5} />
           <directionalLight position={[10, 10, 5]} intensity={2} color="#ffffff" />
           <SwitcherShape />
@@ -78,7 +78,7 @@ export default function LanguageSwitcher3D() {
       </div>
       
       {/* Label under it */}
-      <div className="absolute top-[105%] left-1/2 -translate-x-1/2 text-[9px] font-sans tracking-[0.2em] font-bold text-white/50 w-24 text-center pointer-events-none uppercase transition-colors">
+      <div className="absolute top-[105%] left-1/2 -translate-x-1/2 font-mono text-[9px] tracking-widest font-bold text-white/50 w-24 text-center pointer-events-none uppercase transition-colors">
         <span className={language === 'pt' ? 'text-[var(--gold)] opacity-100' : ''}>PT</span>
         {' / '}
         <span className={language === 'en' ? 'text-[var(--gold)] opacity-100' : ''}>EN</span>

@@ -21,7 +21,7 @@ export default function WhatsAppConcierge() {
       }}
     >
       <motion.a 
-        href="https://wa.me/1234567890" // Replace with actual number
+        href="https://wa.me/YOUR_NUMBER?text=Gostaria%20de%20falar%20com%20a%20direção%20da%20Myth" // Placeholder number as requested
         target="_blank"
         rel="noopener noreferrer"
         className="relative flex items-center justify-center h-12 rounded-full bg-white text-black overflow-hidden cursor-none origin-left border border-white/20 shadow-2xl transition-all duration-500 ease-out"

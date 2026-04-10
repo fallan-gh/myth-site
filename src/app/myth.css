@@ -111,8 +111,8 @@ a:focus-visible {
 }
 .loader-label {
   margin-top: 1.4rem; z-index: 1;
-  font-family: var(--sans); font-size: 0.5rem;
-  letter-spacing: 0.5em; text-transform: uppercase;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 9px;
+  letter-spacing: 0.25em; text-transform: uppercase;
   color: rgba(232, 228, 222, 0.3); font-weight: 300;
 }
 
@@ -226,8 +226,8 @@ a:focus-visible {
 .hero-title {
   font-family: var(--serif);
   font-size: clamp(4.5rem, 12vw, 15rem);
-  font-weight: normal; line-height: 0.85;
-  letter-spacing: -0.025em; text-transform: uppercase;
+  font-weight: 900; line-height: 0.85;
+  letter-spacing: -0.05em; text-transform: uppercase;
 }
 .hero-title-line { display: block; overflow: hidden; line-height: 1.1; }
 .hero-char { display: inline-block; }
@@ -243,8 +243,8 @@ a:focus-visible {
   display: flex; flex-direction: column; align-items: center; gap: 1rem;
 }
 .scroll-cue-text {
-  writing-mode: vertical-rl; font-family: var(--sans); font-size: 0.5rem;
-  letter-spacing: 0.4em; text-transform: uppercase;
+  writing-mode: vertical-rl; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 9px;
+  letter-spacing: 0.25em; text-transform: uppercase;
   color: rgba(232,228,222,0.4); font-weight: 300;
 }
 .scroll-cue-bar { width: 1px; background: var(--gold); transform-origin: top; }
@@ -254,8 +254,8 @@ a:focus-visible {
    ══════════════════════════════════════════════════════ */
 
 .section-label {
-  font-family: var(--sans); font-size: 0.6rem;
-  letter-spacing: 0.5em; text-transform: uppercase;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 9px;
+  letter-spacing: 0.25em; text-transform: uppercase;
   color: rgba(232,228,222,0.25); font-weight: 300;
 }
 
@@ -270,7 +270,7 @@ a:focus-visible {
 
 .services-heading {
   font-family: var(--serif); font-size: clamp(3rem, 6vw, 8rem);
-  font-weight: normal; line-height: 1.05;
+  font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
   color: rgba(232,228,222,0.9); margin-top: 4rem;
 }
 .services-heading em { color: var(--gold); font-style: italic; }
@@ -297,15 +297,15 @@ a:focus-visible {
 .service-card:hover::before { opacity: 1; }
 
 .service-num {
-  font-family: var(--sans); font-size: 0.55rem;
-  letter-spacing: 0.4em; color: var(--gold);
-  font-weight: 400; margin-bottom: 2rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 9px;
+  letter-spacing: 0.25em; color: var(--gold);
+  font-weight: 400; margin-bottom: 2rem; text-transform: uppercase;
 }
 .service-title {
   font-family: var(--serif); font-size: clamp(2rem, 3vw, 3.5rem);
-  font-weight: normal; line-height: 1.05;
+  font-weight: 900; line-height: 1.05; letter-spacing: -0.02em;
   margin-bottom: 1.5rem; color: rgba(232,228,222,0.9);
-  transition: color 0.4s;
+  transition: color 0.4s; text-transform: uppercase;
 }
 .service-card:hover .service-title { color: var(--white); }
 .service-desc {
@@ -336,8 +336,8 @@ a:focus-visible {
 
 .philosophy-text {
   font-family: var(--serif); font-size: clamp(3.5rem, 8vw, 10rem);
-  line-height: 0.95; color: var(--white);
-  max-width: 90vw;
+  font-weight: 900; line-height: 0.95; color: var(--white);
+  letter-spacing: -0.02em; max-width: 90vw; text-transform: uppercase;
 }
 
 .philosophy-text em { color: var(--gold); font-style: italic; }
@@ -354,8 +354,8 @@ a:focus-visible {
 }
 .portfolio-heading {
   font-family: var(--serif); font-size: clamp(4rem, 10vw, 12rem);
-  font-weight: normal; line-height: 0.85;
-  color: rgba(232,228,222,0.9); margin-bottom: 6rem;
+  font-weight: 900; line-height: 0.85; letter-spacing: -0.02em;
+  color: rgba(232,228,222,0.9); margin-bottom: 6rem; text-transform: uppercase;
 }
 .portfolio-heading em { color: var(--gold); font-style: italic; }
 .project-list { border-top: 1px solid rgba(232,228,222,0.07); }
@@ -382,8 +382,8 @@ a:focus-visible {
 .project-preview img { width: 100%; height: 100%; object-fit: cover; }
 
 .project-index {
-  font-family: var(--serif); font-size: clamp(1.5rem, 3vw, 3rem);
-  color: var(--gold); font-style: italic; opacity: 0.4; min-width: 4rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 9px;
+  color: var(--gold); opacity: 0.4; min-width: 4rem; letter-spacing: 0.25em; text-transform: uppercase;
   position: relative; z-index: 1;
   transition: opacity 0.45s, transform 0.5s var(--ease-spring);
 }
@@ -426,7 +426,8 @@ a:focus-visible {
 .process-left { position: sticky; top: 25vh; }
 .process-heading {
   font-family: var(--serif); font-size: clamp(3.5rem, 7vw, 9rem);
-  font-weight: normal; line-height: 0.9; color: rgba(232,228,222,0.9);
+  font-weight: 900; line-height: 0.9; color: rgba(232,228,222,0.9);
+  letter-spacing: -0.02em; text-transform: uppercase;
 }
 .process-heading em { color: var(--gold); font-style: italic; }
 .process-subtext {
@@ -494,8 +495,8 @@ a:focus-visible {
 .cta-link { text-align: center; z-index: 1; cursor: none; display: block; }
 .cta-title {
   font-family: var(--serif); font-size: clamp(4rem, 12vw, 15rem);
-  font-weight: normal; text-transform: uppercase; line-height: 0.85;
-  letter-spacing: -0.02em; color: var(--white); margin-bottom: 3rem;
+  font-weight: 900; text-transform: uppercase; line-height: 0.85;
+  letter-spacing: -0.05em; color: var(--white); margin-bottom: 3rem;
   transition: color 0.6s, letter-spacing 0.6s var(--ease-out);
   will-change: transform;
 }

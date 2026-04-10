@@ -42,7 +42,7 @@ export const dict = {
     cta_title1: "YOUR BRAND<br />",
     cta_title2: "DESERVES THE ABSOLUTE",
     cta_start: "SPEAK WITH DIRECTORS",
-    project_cats: ["Visual Identity", "Web Design", "Apparel Design"]
+    project_cats: ["Visual Identity & 3D Web Architecture", "Web Design", "Apparel Design"]
   },
   pt: {
     loader: "CARREGANDO MITO",
@@ -87,6 +87,6 @@ export const dict = {
     cta_title1: "SUA MARCA<br />",
     cta_title2: "MERECE O ABSOLUTO",
     cta_start: "FALAR COM A DIREÇÃO",
-    project_cats: ["Identidade Visual", "Web Design", "Design de Vestuário"]
+    project_cats: ["Identidade Visual & Arquitetura Web 3D", "Web Design", "Design de Vestuário"]
   }
 };
