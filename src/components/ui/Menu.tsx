@@ -46,6 +46,7 @@ export default function Menu() {
   };
 
   const toggleMenu = () => setIsOpen(!isOpen);
+  const closeMenu = () => setIsOpen(false);
 
   // Block scroll when open
   useEffect(() => {
@@ -76,9 +77,10 @@ export default function Menu() {
       {/* ═[ HAMBURGER ]═ */}
       <button 
         onClick={toggleMenu}
-        aria-label="Toggle Menu"
+        aria-label={isOpen ? 'Close Menu' : 'Open Menu'}
+        aria-expanded={isOpen}
         data-link
-        className="fixed top-8 right-8 z-[100] p-4 group mix-blend-difference cursor-none outline-none"
+        className="fixed top-8 right-8 z-[100] p-4 group mix-blend-difference cursor-none focus-visible:outline-2 focus-visible:outline-[var(--gold)]"
       >
         <div className="flex flex-col gap-[6px] w-8">
           <div className={`h-[2px] bg-white transition-transform duration-500 ease-in-out ${isOpen ? 'rotate-45 translate-y-[8px]' : ''}`} />
@@ -125,7 +127,7 @@ export default function Menu() {
               {/* HUD Coordinates Top Left */}
               <motion.div 
                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.9, duration: 1 }}
-                className="absolute top-10 left-[var(--gutter)] flex flex-col gap-2 font-sans text-[0.6rem] text-white/40 tracking-[0.4em] uppercase"
+                className="absolute top-10 left-[var(--gutter)] flex flex-col gap-2 font-sans text-[0.6rem] text-white/60 tracking-[0.4em] uppercase"
               >
                 <span>{t.nav_domain} // {hoveredIndex !== null ? `FOCUS_0${hoveredIndex + 1}` : t.nav_idle}</span>
                 <span className="text-[var(--gold)]">{t.nav_tension}</span>
@@ -133,7 +135,7 @@ export default function Menu() {
 
               {/* 3D Nav Block */}
               <motion.nav 
-                className="flex flex-col items-center gap-1 md:gap-3"
+                className="flex flex-col items-center gap-1 md:gap-3 relative z-20"
                 style={{ rotateX: tiltX, rotateY: tiltY }}
               >
                 {navItems.map((name, index) => {
@@ -147,7 +149,15 @@ export default function Menu() {
                     >
                       <motion.a 
                         href={NAV_TARGETS[index]}
-                        onClick={toggleMenu}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          closeMenu();
+                          // Smooth scroll after menu close animation
+                          setTimeout(() => {
+                            const target = document.querySelector(NAV_TARGETS[index]);
+                            target?.scrollIntoView({ behavior: 'smooth' });
+                          }, 600);
+                        }}
                         custom={index}
                         variants={textSlideVariants}
                         initial="closed"
@@ -208,7 +218,7 @@ export default function Menu() {
                 {hoveredIndex !== null && (
                   <motion.div 
                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-                    className="absolute bottom-12 right-12 z-10 font-sans text-[0.55rem] tracking-[0.4em] uppercase text-white/40 pointer-events-none text-right"
+                    className="absolute bottom-12 right-12 z-10 font-sans text-[0.55rem] tracking-[0.4em] uppercase text-white/60 pointer-events-none text-right"
                   >
                     INTERACTIVE WEBGL COMPONENT<br/>
                     <span className="text-[var(--gold)]">DRAG TO ROTATE SCENE</span>

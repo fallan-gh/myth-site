@@ -47,10 +47,10 @@ function SmoothLoader({ onComplete, text }: { onComplete: () => void, text: stri
   useEffect(() => {
     let current = 0;
     const intervals = [
-      { target: 30, duration: 600 },
-      { target: 70, duration: 500 },
-      { target: 92, duration: 400 },
-      { target: 100, duration: 300 },
+      { target: 20, duration: 800 },
+      { target: 45, duration: 600 },
+      { target: 80, duration: 900 },
+      { target: 100, duration: 500 },
     ];
 
     let idx = 0;
@@ -63,9 +63,11 @@ function SmoothLoader({ onComplete, text }: { onComplete: () => void, text: stri
       const tick = () => {
         const elapsed = Date.now() - t0;
         const p = Math.min(elapsed / duration, 1);
-        const ease = 1 - Math.pow(1 - p, 3);
+        // Custom easing (expo.inOut)
+        const ease = p === 0 ? 0 : p === 1 ? 1 : p < 0.5 ? Math.pow(2, 20 * p - 10) / 2 : (2 - Math.pow(2, -20 * p + 10)) / 2;
         current = start + (target - start) * ease;
         setProgress(current);
+        
         if (p < 1) { requestAnimationFrame(tick); }
         else { current = target; step(); }
       };
@@ -75,8 +77,8 @@ function SmoothLoader({ onComplete, text }: { onComplete: () => void, text: stri
 
     const completeTimer = setTimeout(() => {
       setDone(true);
-      setTimeout(onComplete, 800);
-    }, 2000);
+      setTimeout(onComplete, 1500); // Extended morph time
+    }, 3000);
 
     return () => clearTimeout(completeTimer);
   }, [onComplete]);
@@ -85,25 +87,48 @@ function SmoothLoader({ onComplete, text }: { onComplete: () => void, text: stri
     <AnimatePresence>
       {!done && (
         <motion.div
-          className="loader-wrap"
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1.2, ease: [0.25, 1, 0.5, 1] }}
+           className="fixed inset-0 z-[1000] bg-[var(--black)] flex flex-col justify-end p-[var(--gutter)] overflow-hidden pointer-events-none"
+           exit={{ 
+             clipPath: 'inset(100% 0% 0% 0%)',
+             opacity: 0,
+             transition: { duration: 1.5, ease: [0.76, 0, 0.24, 1] } 
+           }}
         >
-          {/* Big background M */}
-          <div className="loader-bg-letter">M</div>
+          {/* WebGL Distortion background simulation */}
+          <motion.div 
+            className="absolute inset-0 opacity-20 mix-blend-overlay"
+            style={{ 
+              background: 'radial-gradient(circle at 50% 50%, rgba(176,142,104,0.4) 0%, transparent 70%)',
+              filter: `blur(${100 - progress}px)`
+            }}
+          />
 
-          {/* Progress bar */}
-          <div className="loader-bar-wrap">
-            <div className="loader-bar" style={{ width: `${progress}%` }} />
+          <div className="relative z-10 flex justify-between items-end w-full pb-8 border-b border-white/10">
+            <motion.div 
+              className="font-sans text-[0.6rem] md:text-sm tracking-[0.4em] uppercase text-white/50"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              {text} <br/> 
+              <span className="text-[var(--gold)]">CINEMATIC SEQUENCE</span>
+            </motion.div>
+            
+            <div className="font-serif text-[clamp(4rem,20vw,15rem)] leading-[0.8] tracking-tighter mix-blend-difference overflow-hidden text-[var(--gold)]">
+              <motion.div 
+                initial={{ y: "100%" }}
+                animate={{ y: "0%" }}
+                transition={{ duration: 1, ease: [0.76, 0, 0.24, 1] }}
+              >
+                {Math.min(Math.round(progress), 100).toString().padStart(3, '0')}
+              </motion.div>
+            </div>
           </div>
-
-          <motion.div
-            className="loader-label"
-            animate={{ opacity: [0.4, 1, 0.4] }}
-            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
-          >
-            {text}
-          </motion.div>
+          
+          <motion.div 
+            className="w-full h-[2px] bg-white origin-left relative z-10"
+            style={{ scaleX: progress / 100 }}
+            transition={{ ease: "linear" }}
+          />
         </motion.div>
       )}
     </AnimatePresence>
@@ -606,6 +631,11 @@ export default function Home() {
 
       <main ref={containerRef} className="relative w-full z-10">
 
+        {/* Preload portfolio hover images */}
+        {PROJECTS_DATA.map((p) => (
+          <link key={p.index} rel="preload" as="image" href={p.image} />
+        ))}
+
         {/* ═══════════════════════════════ 01 HERO ═══════════════════════════════ */}
         <section id="hero" className="scroll-section hero-section">
           {/* WebGL particles */}
@@ -632,7 +662,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="scroll-cue">
+          <a href="#services" className="scroll-cue" onClick={(e) => { e.preventDefault(); document.querySelector('#services')?.scrollIntoView({ behavior: 'smooth' }); }}>
             <span className="scroll-cue-text">{t.hero_scroll}</span>
             <motion.div
               className="scroll-cue-bar"
@@ -640,7 +670,7 @@ export default function Home() {
               transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
               style={{ height: '40px' }}
             />
-          </div>
+          </a>
         </section>
 
         <Marquee items={t.marquee_words} />
@@ -733,7 +763,7 @@ export default function Home() {
           <MagneticWrap strength={0.4}>
             <a
               ref={ctaRef}
-              href="mailto:contact@mythagency.com"
+              href="https://wa.me/1234567890" target="_blank" rel="noopener noreferrer"
               className="cta-link"
               data-cta
             >
@@ -755,9 +785,9 @@ export default function Home() {
               <span>{t.nav_rights}</span>
             </div>
             <div className="footer-socials">
-              <a href="#" className="hover:text-white transition-colors" data-link>INSTAGRAM</a>
-              <a href="#" className="hover:text-white transition-colors" data-link>TWITTER</a>
-              <a href="#" className="hover:text-white transition-colors" data-link>LINKEDIN</a>
+              <MagneticWrap strength={0.3}><a href="#" className="hover:text-white transition-colors" data-link>INSTAGRAM</a></MagneticWrap>
+              <MagneticWrap strength={0.3}><a href="#" className="hover:text-white transition-colors" data-link>TWITTER</a></MagneticWrap>
+              <MagneticWrap strength={0.3}><a href="#" className="hover:text-white transition-colors" data-link>LINKEDIN</a></MagneticWrap>
             </div>
           </div>
         </section>

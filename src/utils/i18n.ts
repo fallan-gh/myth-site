@@ -39,9 +39,9 @@ export const dict = {
       { num: 'IV', title: 'Delivery', body: 'Publication, implementation, and monitoring. The project enters the field.' },
     ],
     contact_next: "THE NEXT STEP",
-    cta_title1: "CREATE<br />",
-    cta_title2: "THE MYTH",
-    cta_start: "START PROJECT",
+    cta_title1: "YOUR BRAND<br />",
+    cta_title2: "DESERVES THE ABSOLUTE",
+    cta_start: "SPEAK WITH DIRECTORS",
     project_cats: ["Visual Identity", "Web Design", "Apparel Design"]
   },
   pt: {
@@ -84,9 +84,9 @@ export const dict = {
       { num: 'IV', title: 'Entrega', body: 'Publicação, implementação e acompanhamento. A marca se torna uma experiência digital viva.' },
     ],
     contact_next: "O PRÓXIMO PASSO",
-    cta_title1: "CRIE<br />",
-    cta_title2: "O MITO",
-    cta_start: "INICIAR PROJETO",
+    cta_title1: "SUA MARCA<br />",
+    cta_title2: "MERECE O ABSOLUTO",
+    cta_start: "FALAR COM A DIREÇÃO",
     project_cats: ["Identidade Visual", "Web Design", "Design de Vestuário"]
   }
 };

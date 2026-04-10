@@ -59,11 +59,14 @@ export default function LanguageSwitcher3D() {
 
   return (
     <div 
-      className="fixed bottom-6 right-8 lg:bottom-12 lg:right-12 z-[100] w-20 h-20 cursor-none"
+      className="fixed bottom-4 right-4 sm:bottom-6 sm:right-8 lg:bottom-12 lg:right-12 z-[100] w-14 h-14 sm:w-20 sm:h-20 cursor-none"
       onMouseEnter={() => setCursorMode('magnetic')}
       onMouseLeave={() => setCursorMode('default')}
       onClick={toggle}
-      title="Toggle Language"
+      role="button"
+      tabIndex={0}
+      aria-label={`Switch language to ${language === 'en' ? 'Portuguese' : 'English'}`}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } }}
     >
       <div className="absolute inset-0 pointer-events-none">
         <Canvas camera={{ position: [0, 0, 4.5], fov: 45 }} gl={{ alpha: true }}>
