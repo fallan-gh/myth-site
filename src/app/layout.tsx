@@ -42,11 +42,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${raleway.variable}`}>
-      <body className="bg-transparent text-white antialiased overflow-x-hidden pt-0 m-0">
+    <html lang="en" className={`${inter.variable} ${raleway.variable}`} suppressHydrationWarning>
+      <body className="bg-transparent text-white antialiased overflow-x-hidden pt-0 m-0" suppressHydrationWarning>
         <SmoothScroll>
           {/* HTML Layer */}
-          <main className="relative z-10 w-full min-h-screen pointer-events-auto">
+          <main className="relative w-full min-h-screen pointer-events-auto" style={{ mixBlendMode: 'difference' }}>
             {children}
           </main>
 

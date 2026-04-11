@@ -10,14 +10,14 @@ import { useStore } from '@/utils/store';
 import Image from 'next/image';
 import { dict } from '@/utils/i18n';
 import * as THREE from 'three';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
+import { Canvas, useFrame, useThree, extend } from '@react-three/fiber';
 import { 
   Float, Icosahedron, MeshDistortMaterial, Environment, 
-  Sparkles, Stars, PresentationControls, Preload 
+  Sparkles, Stars, PresentationControls, Preload,
+  shaderMaterial
 } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette, Noise } from '@react-three/postprocessing';
-import './myth.css';
-
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
+import LottiePreloader from '@/components/ui/LottiePreloader';
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────────────────────────────────────
@@ -65,318 +65,111 @@ const PROJECTS_DATA = [
  *            approximation via cubic-bezier) + curtain translateY.
  */
 
-// Easing tokens
-const EASE_EXPO: [number, number, number, number] = [0.87, 0, 0.13, 1];
-
-// Path data extracted from Artboard 3 copy 2teste.svg
-const MYTH_PATHS = [
-  "M642.08,1135.33c14.54-7.4,21.42-17.6,21.42-40.81v-180.07c-7.14,9.44-14.54,19.13-22.19,28.57-26.78,34.18-50.5,69.88-50.5,105.08,0,8.16,1.28,16.32,4.08,24.48,8.16,22.44,15.05,53.05,38.51,62.74h-44.63c-41.83,0-77.28-25-91.56-64.27l-71.67-199.45v222.4c0,23.21,6.63,33.67,21.42,41.06l-67.84.26c14.54-7.4,21.17-17.6,21.17-40.81v-279.54c0-7.91-.76-14.28-2.29-19.64l-1.79-4.85c-3.32-7.65-8.93-13.01-17.09-17.09l67.84.25c-.25,0-.51,0-.77.26,26.27,2.3,47.95,18.87,57.13,44.12l71.92,199.7c10.71-39.79,58.66-89.78,83.91-126.5,13.52-19.64,22.44-41.06,22.44-61.21,0-21.93-10.97-42.34-39.53-56.37h132.63c-14.54,7.14-21.17,17.34-21.17,40.55v280.3c0,23.21,6.63,33.41,21.17,40.81h-132.63Z",
-  "M788.99,1179.97c3.06.25,6.38.25,9.69.25,35.71,0,85.95-13.52,118.6-39.28l-.51-1.28-103.81-182.11c-6.63-11.99-17.09-24.23-31.37-26.78l90.54-43.1,86.72,159.15,53.31-103.55c6.63-11.73,11.99-22.19,11.99-32.14,0-8.16-3.83-15.81-13.77-23.46h54.84c-5.61,13.52-19.89,36.47-33.41,62.74l-90.29,173.94c-2.29,5.87-1.53,3.06-5.1,9.69l-35.96,69.12c-10.46,20.15-29.33,31.12-49.22,31.12-24.74,0-50.5-17.09-62.23-54.33Z",
-  "M1104.74,1052.19v-133.39c0-23.46-4.08-30.61-22.19-41.06l105.59-84.17v78.56h65.29l.25,14.28h-65.55v178.03c0,26.02,8.16,38.77,23.21,38.77,8.16,0,18.36-3.83,30.35-10.97-11.99,28.82-38.26,43.36-64.78,43.36-35.96,0-72.18-27.04-72.18-83.4Z",
-  "M1425.34,1088.15v-106.36c0-45.65-18.62-67.84-45.91-67.84-5.36,0-10.97.77-16.83,2.55v171.14c0,36.22-32.9,47.95-65.29,47.95-12.24,0-24.74-1.53-34.94-4.34,11.99-3.57,16.83-18.62,16.83-32.14v-241.53c0-23.72-3.83-30.61-22.19-41.32l105.59-43.1v134.16c20.4-13.77,41.32-19.89,60.96-19.89,46.93,0,85.44,35.45,85.44,85.19v126.76c0,13.52,4.59,28.31,16.58,31.88-10.46,2.81-22.7,4.34-34.94,4.34-32.39,0-65.29-11.48-65.29-47.44Z"
-] as const;
-
-/** ACT I: Stagger container — locks on mount, never re-triggers */
-const pathContainerVariants: Variants = {
-  hidden: {},
-  drawing: {
-    transition: {
-      staggerChildren: 0.15,
-      delayChildren: 0.3,
-    },
-  },
-};
-
-const pathDrawVariants: Variants = {
-  hidden: {
-    pathLength: 0,
-    opacity: 0,
-  },
-  drawing: {
-    pathLength: 1,
-    opacity: 1,
-    transition: {
-      pathLength: { duration: 1.8, ease: EASE_EXPO },
-      opacity: { duration: 0.4, ease: 'easeOut' },
-    },
-  },
-};
-
-/**
- * [120FPS] Custom cubic-bezier spring approximation for Web Animations API.
- * Computed from stiffness:300 damping:20 mass:0.8 → underdamped response.
- * Approximate overshooting with an ease-out-back-like curve.
- */
-const SPRING_APPROX_EASE = 'cubic-bezier(0.34, 1.56, 0.64, 1)';
-const CURTAIN_EASE = 'cubic-bezier(0.76, 0, 0.24, 1)';
-
-function CinematicPreloader({ onComplete }: { onComplete: () => void }) {
-  // [120FPS]: Refs instead of state — ZERO re-renders after mount.
-  const curtainRef = useRef<HTMLDivElement>(null);
-  const stageRef = useRef<HTMLDivElement>(null);
-  const strokeGroupRef = useRef<SVGGElement>(null);
-  const fillGroupRef = useRef<SVGGElement>(null);
-  const fillClipRef = useRef<SVGRectElement>(null);
-  const rootRef = useRef<HTMLDivElement>(null);
-  const rafRef = useRef<number>(0);
-  const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
-
-  useEffect(() => {
-    const curtain = curtainRef.current;
-    const stage = stageRef.current;
-    const strokeGroup = strokeGroupRef.current;
-    const fillGroup = fillGroupRef.current;
-    const fillClip = fillClipRef.current;
-    const root = rootRef.current;
-    if (!curtain || !stage || !strokeGroup || !fillGroup || !fillClip || !root) return;
-
-    // Gather stroke path elements for direct manipulation
-    const strokePaths = strokeGroup.querySelectorAll<SVGPathElement>('path');
-    const fillPaths = fillGroup.querySelectorAll<SVGPathElement>('path');
-
-    // ──────────────────────────────────────────────────────────────
-    // ACT II (t=2800ms): Liquid Fill + Stroke Fade
-    // All rAF-driven, zero React.
-    // ──────────────────────────────────────────────────────────────
-    const tFill = setTimeout(() => {
-      // Remove SVG glow filter (prevent compositing overhead during fill)
-      strokeGroup.removeAttribute('filter');
-
-      // Fade fill paths in immediately (CSS transition handles it)
-      fillPaths.forEach((p, i) => {
-        p.style.transition = `opacity 0.3s ease ${i * 0.04}s`;
-        p.style.opacity = '1';
-      });
-
-      // Animate clipPath rect + stroke opacity via single rAF loop
-      const fillStart = performance.now();
-      const fillDuration = 1200;
-      const strokeFadeDuration = 600;
-
-      const tick = (now: number) => {
-        const elapsed = now - fillStart;
-        const t = Math.min(elapsed / fillDuration, 1);
-        // ease-out-expo
-        const eased = t === 1 ? 1 : 1 - Math.pow(2, -10 * t);
-
-        // Expand clipPath from center
-        const fullH = 1920;
-        const h = fullH * eased;
-        const y = (fullH - h) / 2;
-        fillClip.setAttribute('y', y as unknown as string);
-        fillClip.setAttribute('height', h as unknown as string);
-
-        // Simultaneaously fade stroke paths (faster, 600ms)
-        const strokeT = Math.min(elapsed / strokeFadeDuration, 1);
-        const strokeOpacity = 1 - strokeT; // linear is fine for fade
-        strokePaths.forEach((p) => {
-          p.style.opacity = String(strokeOpacity);
-        });
-
-        if (t < 1) {
-          rafRef.current = requestAnimationFrame(tick);
-        }
-      };
-
-      rafRef.current = requestAnimationFrame(tick);
-    }, 2800);
-
-    // ──────────────────────────────────────────────────────────────
-    // ACT III: Hold (t=4200ms → t=5000ms) — No-op. Steady state.
-    // ──────────────────────────────────────────────────────────────
-
-    // ──────────────────────────────────────────────────────────────
-    // ACT IV-A (t=5000ms): Logo Implode — Web Animations API
-    // Runs on compositor thread, bypasses React + Framer Motion.
-    // ──────────────────────────────────────────────────────────────
-    const tImplode = setTimeout(() => {
-      stage.animate(
-        [
-          { transform: 'scale(1)', opacity: 1, filter: 'blur(0px)' },
-          { transform: 'scale(0.8)', opacity: 0, filter: 'blur(10px)' },
-        ],
-        {
-          duration: 500,
-          easing: SPRING_APPROX_EASE,
-          fill: 'forwards',
-        }
-      );
-    }, 5000);
-
-    // ──────────────────────────────────────────────────────────────
-    // ACT IV-B (t=5500ms): Curtain Lift — Web Animations API
-    // translateY runs 100% on compositor thread (GPU).
-    // ──────────────────────────────────────────────────────────────
-    const tCurtain = setTimeout(() => {
-      curtain.animate(
-        [
-          { transform: 'translateY(0%) translateZ(0)' },
-          { transform: 'translateY(-100%) translateZ(0)' },
-        ],
-        {
-          duration: 900,
-          easing: CURTAIN_EASE,
-          fill: 'forwards',
-        }
-      );
-    }, 5500);
-
-    // ──────────────────────────────────────────────────────────────
-    // COMPLETE (t=6400ms): Remove from DOM + fire callback
-    // Single setState to unmount.
-    // ──────────────────────────────────────────────────────────────
-    const tComplete = setTimeout(() => {
-      root.style.display = 'none';
-      onCompleteRef.current();
-    }, 6400);
-
-    return () => {
-      cancelAnimationFrame(rafRef.current);
-      clearTimeout(tFill);
-      clearTimeout(tImplode);
-      clearTimeout(tCurtain);
-      clearTimeout(tComplete);
-    };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // [120FPS]: Entire render happens ONCE. No conditional props,
-  // no ternary operators in JSX that depend on state.
-  return (
-    <div ref={rootRef} className="fixed inset-0 z-[999]" style={{ contain: 'layout paint style' }}>
-      {/* ═══ CURTAIN BACKDROP ═══
-          [GPU]: will-change + translateZ(0) promotes to own compositor layer.
-          No paint invalidation on translate. */}
-      <div
-        ref={curtainRef}
-        className="fixed inset-0 z-[999] bg-[#050505] pointer-events-none"
-        style={{ willChange: 'transform', transform: 'translateZ(0)' }}
-      />
-
-      {/* ═══ LOGO STAGE ═══
-          [GPU]: will-change: transform, opacity, filter.
-          All three are compositor-safe when the element has its own layer. */}
-      <div
-        ref={stageRef}
-        className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden pointer-events-none"
-        style={{ willChange: 'transform, opacity, filter', transform: 'translateZ(0)' }}
-      >
-        <motion.svg
-          viewBox="0 0 1920 1920"
-          className="w-[45vw] max-w-[600px] h-auto"
-          variants={pathContainerVariants}
-          initial="hidden"
-          animate="drawing"
-        >
-          <defs>
-            {/* ── Molten Copper Glow Filter ── */}
-            <filter id="molten-glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
-              <feColorMatrix
-                in="blur"
-                type="matrix"
-                values="1.2 0 0 0 0.1
-                        0 0.7 0 0 0.02
-                        0 0 0.3 0 0
-                        0 0 0 0.6 0"
-                result="glow"
-              />
-              <feMerge>
-                <feMergeNode in="glow" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-
-            {/* ── Liquid Fill ClipPath (animated via rAF) ── */}
-            <clipPath id="liquid-fill-clip">
-              <rect
-                ref={fillClipRef}
-                x="0"
-                y="960"
-                width="1920"
-                height="0"
-              />
-            </clipPath>
-
-            {/* ── Gradient for stroke: oxidized copper → white ── */}
-            <linearGradient id="copper-to-white" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#B87333" />
-              <stop offset="60%" stopColor="#D4A574" />
-              <stop offset="100%" stopColor="#E8E4DE" />
-            </linearGradient>
-          </defs>
-
-          {/* ── LAYER 1: Glowing stroke paths (The Calligraphy) ──
-              [120FPS]: filter is set once via attribute, removed via
-              direct DOM in ACT II. No React re-render needed. */}
-          <g ref={strokeGroupRef} filter="url(#molten-glow)">
-            {MYTH_PATHS.map((d, i) => (
-              <motion.path
-                key={`stroke-${i}`}
-                d={d}
-                fill="none"
-                stroke="url(#copper-to-white)"
-                strokeWidth={1.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                variants={pathDrawVariants}
-              />
-            ))}
-          </g>
-
-          {/* ── LAYER 2: Filled paths behind a liquid-reveal clipPath ──
-              [120FPS]: opacity starts at 0 via inline style.
-              Transition to 1 is triggered by direct DOM style.opacity
-              set in the ACT II setTimeout. No animate prop needed. */}
-          <g ref={fillGroupRef} clipPath="url(#liquid-fill-clip)">
-            {MYTH_PATHS.map((d, i) => (
-              <path
-                key={`fill-${i}`}
-                d={d}
-                fill="#E8E4DE"
-                stroke="none"
-                style={{ opacity: 0 }}
-              />
-            ))}
-          </g>
-        </motion.svg>
-      </div>
-    </div>
-  );
-}
 
 // [120FPS OPTIMIZATION]: Pre-allocated vector to prevent GC stutters.
 const tmpVector = new THREE.Vector3();
 
-// [00] HERO SCENE
-const HeroScene = memo(function HeroScene() {
+// ─────────────────────────────────────────────────────────────────────────────
+// [00] HERO SCENE SHADERS & PARTICLES
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Pulsing gold rim shader for the inner icosahedron */
+const GoldPulseShaderMaterial = shaderMaterial(
+  { uTime: 0, uColor: new THREE.Color('#B08E68'), uRimColor: new THREE.Color('#FFD9A0'), uPulse: 0.0 },
+  // vertex
+  `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+      vUv = uv;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  // fragment
+  `
+    uniform float uTime;
+    uniform vec3 uColor;
+    uniform vec3 uRimColor;
+    uniform float uPulse;
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    varying vec2 vUv;
+    void main() {
+      vec3 viewDir = normalize(-vPosition);
+      float rim = 1.0 - max(dot(viewDir, vNormal), 0.0);
+      rim = pow(rim, 2.2);
+      float pulse = 0.5 + 0.5 * sin(uTime * 2.0 + vUv.y * 6.28);
+      vec3 col = mix(uColor, uRimColor, rim);
+      col += uRimColor * rim * pulse * 0.6;
+      float fresnel = pow(rim, 1.2) * (0.6 + uPulse * 0.4);
+      gl_FragColor = vec4(col, fresnel + 0.12);
+    }
+  `
+);
+extend({ GoldPulseShaderMaterial });
+
+// TypeScript: teach R3F about the custom shader material element
+declare module '@react-three/fiber' {
+  interface ThreeElements {
+    goldPulseShaderMaterial: THREE.ShaderMaterial & {
+      uTime?: number;
+      uColor?: THREE.Color;
+      uRimColor?: THREE.Color;
+      uPulse?: number;
+    } & JSX.IntrinsicElements['mesh'];
+  }
+}
+
+/** Orbiting particle that traces an ellipse around the icosahedron */
+function OrbitParticle({
+  radius = 3, speed = 1, phase = 0, yTilt = 0, size = 0.04, color = '#B08E68'
+}: {
+  radius?: number; speed?: number; phase?: number;
+  yTilt?: number; size?: number; color?: string;
+}) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const wireframeRef = useRef<THREE.Mesh>(null);
-
-  useFrame((state, delta) => {
-    if (meshRef.current) {
-      const targetX = state.pointer.y * 0.5;
-      const targetY = state.pointer.x * 0.5;
-      meshRef.current.rotation.x += 0.05 * (targetX - meshRef.current.rotation.x) + delta * 0.15;
-      meshRef.current.rotation.y += 0.05 * (targetY - meshRef.current.rotation.y) + delta * 0.2;
-    }
-    if (wireframeRef.current) {
-      wireframeRef.current.rotation.x -= delta * 0.1;
-      wireframeRef.current.rotation.y -= delta * 0.15;
-    }
+  useFrame(({ clock }) => {
+    if (!meshRef.current) return;
+    const t = clock.getElapsedTime() * speed + phase;
+    meshRef.current.position.set(
+      Math.cos(t) * radius,
+      Math.sin(t * 0.5) * radius * Math.sin(yTilt),
+      Math.sin(t) * radius
+    );
   });
-
   return (
-    <group position={[0, -0.5, 0]}>
-      <Icosahedron ref={meshRef} args={[2, 0]} position={[0, 0, 0]}>
-        <meshStandardMaterial color="#B08E68" roughness={0.15} metalness={0.9} flatShading={true} />
-      </Icosahedron>
-      <Icosahedron ref={wireframeRef} args={[2.2, 1]} position={[0, 0, 0]}>
-        <meshBasicMaterial color="#B08E68" wireframe={true} transparent opacity={0.2} />
-      </Icosahedron>
-    </group>
+    <mesh ref={meshRef}>
+      <sphereGeometry args={[size, 6, 6]} />
+      <meshBasicMaterial color={color} transparent opacity={0.9} />
+    </mesh>
   );
-});
+}
+
+/** Thin orbit ring (torus) — rotates independently */
+function OrbitRing({
+  radius = 2.8, tube = 0.006, color = '#B08E68', rotX = 0, rotY = 0, rotZ = 0, spinSpeed = 0.15, opacity = 0.35
+}: {
+  radius?: number; tube?: number; color?: string;
+  rotX?: number; rotY?: number; rotZ?: number;
+  spinSpeed?: number; opacity?: number;
+}) {
+  const ref = useRef<THREE.Mesh>(null);
+  useFrame((_, delta) => {
+    if (!ref.current) return;
+    ref.current.rotation.x += delta * spinSpeed * 0.4;
+    ref.current.rotation.y += delta * spinSpeed;
+    ref.current.rotation.z += delta * spinSpeed * 0.2;
+  });
+  return (
+    <mesh ref={ref} rotation={[rotX, rotY, rotZ]}>
+      <torusGeometry args={[radius, tube, 6, 80]} />
+      <meshBasicMaterial color={color} transparent opacity={opacity} />
+    </mesh>
+  );
+}
 
 // [00-B] ARCHIVAL PORTFOLIO LIST
 const ARCHIVAL_PROJECTS = [
@@ -745,19 +538,32 @@ function MythCursor() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 function HeroChars({ text, delay = 0, style }: { text: string; delay?: number; style?: React.CSSProperties }) {
+  // Split words to manage spacing cleanly during animations
+  const words = text.split(' ');
   return (
-    <span style={style}>
-      {text.split('').map((char, i) => (
-        <motion.span
-          key={i}
-          className="hero-char"
-          initial={{ y: '110%', opacity: 0, rotate: 6 }}
-          animate={{ y: '0%', opacity: 1, rotate: 0 }}
-          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: delay + i * 0.05 }}
-        >
-          {char === ' ' ? '\u00A0' : char}
-        </motion.span>
-      ))}
+    <span style={style} className="flex flex-wrap">
+      <AnimatePresence mode="popLayout">
+        {words.map((word, wIdx) => (
+          <span key={`${word}-${wIdx}`} className="inline-flex mr-[0.25em]">
+            {word.split('').map((char, i) => (
+              <motion.span
+                key={`${word}-${wIdx}-${i}`}
+                className="hero-char"
+                initial={{ y: '110%', opacity: 0, rotate: 6 }}
+                animate={{ y: '0%', opacity: 1, rotate: 0 }}
+                exit={{ y: '-110%', opacity: 0, rotate: -6 }}
+                transition={{ 
+                  duration: 0.8, 
+                  ease: [0.16, 1, 0.3, 1], 
+                  delay: delay + i * 0.03 
+                }}
+              >
+                {char}
+              </motion.span>
+            ))}
+          </span>
+        ))}
+      </AnimatePresence>
     </span>
   );
 }
@@ -859,28 +665,6 @@ function Marquee({ items, reverse = false, isGold = false }: { items: string[]; 
   );
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// PAGE CURTAIN
-// ─────────────────────────────────────────────────────────────────────────────
-
-function PageCurtain() {
-  const [visible, setVisible] = useState(true);
-  return (
-    <AnimatePresence>
-      {visible && (
-        <motion.div
-          className="myth-curtain"
-          initial={{ scaleY: 1 }}
-          animate={{ scaleY: 0 }}
-          exit={{ scaleY: 0 }}
-          transition={{ duration: 1.4, ease: [0.25, 1, 0.5, 1], delay: 0.1 }}
-          style={{ transformOrigin: 'top center', zIndex: 99998 }}
-          onAnimationComplete={() => setVisible(false)}
-        />
-      )}
-    </AnimatePresence>
-  );
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // [05] MICRO: click ripple hook
@@ -924,9 +708,6 @@ export default function Home() {
   const setActiveSection = useStore((s) => s.setActiveSection);
 
   const [loaded, setLoaded] = useState(false);
-
-  // WebGL Particles
-  useWebGL(canvasRef as React.RefObject<HTMLCanvasElement>);
 
   // CTA ripple
   useRipple(ctaRef as React.RefObject<HTMLElement>);
@@ -1051,9 +832,8 @@ export default function Home() {
 
   return (
     <>
-      <CinematicPreloader onComplete={() => setLoaded(true)} />
+      <LottiePreloader onComplete={() => setLoaded(true)} />
       <MythCursor />
-      <PageCurtain />
 
       {/* Grain overlay */}
       <div className="myth-grain" />
@@ -1068,7 +848,7 @@ export default function Home() {
         </a>
       </nav>
 
-      <main ref={containerRef} className="relative w-full z-10">
+      <main ref={containerRef} className="relative w-full">
 
         {/* Preload portfolio hover images */}
         {PROJECTS_DATA.map((p) => (
@@ -1077,19 +857,6 @@ export default function Home() {
 
         {/* ═══════════════════════════════ 01 HERO ═══════════════════════════════ */}
         <section id="hero" className="scroll-section hero-section">
-          {/* 3D Geometric Background */}
-          <div className="absolute inset-0 z-0 pointer-events-none">
-            {/* [120FPS OPTIMIZATION]: Added dpr limit to prevent high pixel ratio calculations bottleneck */}
-            <Canvas dpr={[1, 2]} camera={{ position: [0, 0, 5], fov: 45 }} gl={{ alpha: true }}>
-              <ambientLight intensity={0.5} />
-              <directionalLight position={[10, 10, 5]} intensity={2} color="#ffffff" />
-              <HeroScene />
-            </Canvas>
-          </div>
-
-          {/* WebGL particles */}
-          <canvas ref={canvasRef} className="gl-canvas z-10" />
-
           {/* Background Letter M */}
           <div className="hero-bg-letter">M</div>
 
