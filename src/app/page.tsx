@@ -119,7 +119,7 @@ declare module '@react-three/fiber' {
       uColor?: THREE.Color;
       uRimColor?: THREE.Color;
       uPulse?: number;
-    } & JSX.IntrinsicElements['mesh'];
+    };
   }
 }
 
