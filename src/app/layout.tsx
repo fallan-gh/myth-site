@@ -2,7 +2,7 @@ import './globals.css';
 
 import SmoothScroll from '@/components/layout/SmoothScroll';
 import GlobalCanvas from '@/components/canvas/GlobalCanvas';
-import HeroScene from '@/components/canvas/HeroScene';
+import DynamicMain from '@/components/layout/DynamicMain';
 import WhatsAppConcierge from '@/components/ui/WhatsAppConcierge';
 import { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
@@ -46,16 +46,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className="bg-transparent text-white antialiased overflow-x-hidden pt-0 m-0" suppressHydrationWarning>
         <SmoothScroll>
           {/* HTML Layer */}
-          <main className="relative w-full min-h-screen pointer-events-auto" style={{ mixBlendMode: 'difference' }}>
+          <DynamicMain>
             {children}
-          </main>
+          </DynamicMain>
 
           <WhatsAppConcierge />
 
           {/* WebGL 3D Layer */}
-          <GlobalCanvas>
-            <HeroScene />
-          </GlobalCanvas>
+          <GlobalCanvas />
         </SmoothScroll>
       </body>
     </html>

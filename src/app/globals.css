@@ -29,6 +29,30 @@
   --color-white: #E8E4DE;
 }
 
+@layer utilities {
+  .glass-container {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+  }
+
+  .hud-blur {
+    @apply backdrop-blur-2xl bg-black/40 border border-white/5;
+  }
+
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  }
+  .text-shadow-lg {
+    text-shadow: 0 4px 8px rgba(0,0,0,0.8);
+  }
+  
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
 :root {
   /* Original Myth Tokens */
   --gold:       #B08E68;
@@ -82,6 +106,26 @@
 
   p, span, a {
     mix-blend-mode: difference;
+  }
+
+  /* ─── PORTFOLIO OVERRIDES ─── */
+  .portfolio-page h1, .portfolio-page h2, .portfolio-page h3, .portfolio-page h4, .portfolio-page h5, .portfolio-page h6,
+  .portfolio-page p, .portfolio-page span, .portfolio-page a {
+    mix-blend-mode: normal !important;
+  }
+
+  /* ─── HUD GLASS FIXES ─── */
+  .hud-glass {
+    backdrop-filter: blur(40px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(40px) saturate(150%) !important;
+    mix-blend-mode: normal !important;
+    isolation: isolate;
+    will-change: backdrop-filter;
+  }
+
+  .hud-glass *, 
+  .hud-glass-text {
+    mix-blend-mode: normal !important;
   }
 
   ::-webkit-scrollbar { display: none; }

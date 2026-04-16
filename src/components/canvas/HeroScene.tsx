@@ -3,6 +3,7 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Icosahedron } from '@react-three/drei';
+import { useStore } from '@/utils/store';
 import * as THREE from 'three';
 
 // [120FPS OPTIMIZATION]: Wrapped generic heavy 3D scene in React.memo 
@@ -12,8 +13,11 @@ const HeroScene = React.memo(function HeroScene() {
   const meshRef = useRef<THREE.Mesh>(null);
   const wireframeRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
+  const isScenePaused = useStore((state) => state.isScenePaused);
 
   useFrame((state, delta) => {
+    if (isScenePaused) return;
+
     if (groupRef.current) {
       // Parallax effect tied to mouse - OPPOSITE direction
       const targetX = -state.pointer.y * 0.4;
