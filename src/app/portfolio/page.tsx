@@ -782,10 +782,10 @@ function ProjectPanel({
               </motion.div>
 
               <motion.div className="h-[1px]"
-                style={{ background: 'rgba(232,228,222,0.06)' }}
+                style={{ background: 'rgba(232,228,222,0.06)', transformOrigin: 'left' }}
                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
                 transition={{ duration: 0.55, ease: EASE_OUT, delay: 0.25 }}
-                style={{ transformOrigin: 'left' }} />
+              />
 
               <motion.p
                 className="font-sans text-[0.95rem] md:text-[1rem] leading-[1.8] text-white/60 font-light"
