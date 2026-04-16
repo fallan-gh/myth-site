@@ -44,13 +44,12 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
   }, [localProgress, isIframeLoaded, setIsScenePaused]);
 
   useLayoutEffect(() => {
-    if (isMobile) return;
-
+    // [MOBILE OPTIMIZATION]: We now allow GSAP on mobile for the JIT logic, 
+    // but we can reduce animation complexity if needed.
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
           trigger: containerRef.current,
-          // Buffer Zone: start 200px earlier/later to prevent boundary flickering
           start: "top bottom+=200", 
           end: "center center-=200",
           scrub: true,
@@ -59,7 +58,6 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
             setActiveIframeId(id);
           },
           onLeave: () => {
-            // Debounced Culling: Wait 500ms before destroying iframe
             unmountTimeoutRef.current = setTimeout(() => {
               setActiveIframeId(null);
               setIsIframeLoaded(false);
@@ -77,7 +75,6 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
           },
           onUpdate: (self) => {
             setLocalProgress(self.progress);
-            // Force pointer-events: none during scrub
             if (self.progress > 0 && self.progress < 1) {
               if (isPointerEnabled) setIsPointerEnabled(false);
             }
@@ -91,9 +88,9 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
 
       tl.fromTo(stageRef.current, 
         { 
-          scale: 0.8,
-          rotateX: 15,
-          borderRadius: '2.5rem',
+          scale: 0.85,
+          rotateX: 10,
+          borderRadius: '2rem',
           transformPerspective: 1200
         },
         {
@@ -109,7 +106,7 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
       if (unmountTimeoutRef.current) clearTimeout(unmountTimeoutRef.current);
       ctx.revert();
     };
-  }, [isMobile, id, setActiveIframeId, setShowcaseProject, isPointerEnabled]);
+  }, [id, setActiveIframeId, setShowcaseProject, isPointerEnabled]);
 
   useEffect(() => {
     setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
@@ -134,70 +131,40 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
         }}
       >
         
-        {/* MOBILE FALLBACK: Premium Poster */}
-        {isMobile && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-gradient-to-br from-white/10 to-transparent backdrop-blur-3xl z-20">
-            <div className="space-y-4 max-w-md">
-              <motion.h2 
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                className="text-white font-raleway font-black text-4xl uppercase tracking-tighter"
-              >
-                {title}
-              </motion.h2>
-              {subtitle && (
-                <p className="text-white/40 font-mono text-[10px] uppercase tracking-[0.3em]">
-                  {subtitle}
-                </p>
-              )}
-              <div className="pt-8">
-                <button 
-                  onClick={() => window.open(url, '_blank')}
-                  className="px-10 py-4 bg-white text-black font-bold rounded-full uppercase tracking-tighter hover:scale-105 active:scale-95 transition-all shadow-[0_0_30px_rgba(255,255,255,0.3)]"
-                >
-                  Explorar Projeto
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* ENTERPRISE JIT IFRAME (Strict Mutual Exclusion + No Void) */}
-        {!isMobile && (
-          <AnimatePresence mode="wait">
-            {isMounted && (
-              <motion.div
-                key={`${id}-iframe-mount`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="absolute inset-0 z-0"
-                style={{ backgroundColor: bgColor }}
-              >
-                <iframe
-                  src={url}
-                  className={`w-full h-full border-none transition-opacity duration-1000 ${isIframeLoaded ? 'opacity-100' : 'opacity-0'}`}
-                  onLoad={() => setIsIframeLoaded(true)}
-                  title={title}
-                  loading="eager"
-                />
-                
-                {/* Loader Overlay (Matches bgColor) */}
-                {!isIframeLoaded && (
-                  <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: bgColor }}>
-                    <div className="flex flex-col items-center space-y-4">
-                      <div className="w-12 h-12 rounded-full border border-white/10 border-t-white/60 animate-spin" />
-                      <div className="flex flex-col items-center">
-                        <span className="text-[10px] text-white/20 font-mono uppercase tracking-[0.4em] animate-pulse">Establishing Bridge...</span>
-                        <span className="text-[8px] text-white/10 font-mono uppercase tracking-[0.2em]">Safety Buffers Active</span>
-                      </div>
+        <AnimatePresence mode="wait">
+          {isMounted && (
+            <motion.div
+              key={`${id}-iframe-mount`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 z-0"
+              style={{ backgroundColor: bgColor }}
+            >
+              <iframe
+                src={url}
+                className={`w-full h-full border-none transition-opacity duration-1000 ${isIframeLoaded ? 'opacity-100' : 'opacity-0'}`}
+                onLoad={() => setIsIframeLoaded(true)}
+                title={title}
+                loading="eager"
+              />
+              
+              {/* Loader Overlay (Matches bgColor) */}
+              {!isIframeLoaded && (
+                <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: bgColor }}>
+                  <div className="flex flex-col items-center space-y-4">
+                    <div className="w-12 h-12 rounded-full border border-white/10 border-t-white/60 animate-spin" />
+                    <div className="flex flex-col items-center">
+                      <span className="text-[10px] text-white/20 font-mono uppercase tracking-[0.4em] animate-pulse">Establishing Bridge...</span>
+                      <span className="text-[8px] text-white/10 font-mono uppercase tracking-[0.2em]">Safety Buffers Active</span>
                     </div>
                   </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        )}
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Global HUD Sync Decals */}
         <div className="absolute top-10 right-10 z-30 pointer-events-none opacity-40">
