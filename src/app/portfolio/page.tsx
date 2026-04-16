@@ -374,7 +374,14 @@ function Scene({ scrollYProgress, globalVelocity, isGlitching, activeProject, se
         <Scanline blendFunction={BlendFunction.OVERLAY} density={2.0} opacity={0.15} />
         <Noise opacity={0.08} blendFunction={BlendFunction.SOFT_LIGHT} />
         <Vignette eskil={false} offset={0.1} darkness={1.3} />
-        <Glitch delay={[1.5, 3.5]} duration={[0.1, 0.3]} strength={[0.02, 0.08]} active={isGlitching} mode={GlitchMode.SPORADIC} ratio={0.8} />
+        <Glitch 
+          delay={new THREE.Vector2(1.5, 3.5)} 
+          duration={new THREE.Vector2(0.1, 0.3)} 
+          strength={new THREE.Vector2(0.02, 0.08)} 
+          active={isGlitching} 
+          mode={GlitchMode.SPORADIC} 
+          ratio={0.8} 
+        />
       </EffectComposer>
     </Canvas>
   );
