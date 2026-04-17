@@ -95,7 +95,7 @@ export default function ShowcaseHUD() {
           }}
           transition={{ opacity: { duration: 2, repeat: Infinity } }}
         />
-        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 font-mono tracking-tighter vertical-text opacity-40">
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 font-raleway tracking-tighter vertical-text opacity-40">
           <AnimatedText 
             text="PROJECT_FLOW" 
             className="text-[8px] text-[#B08E68]" 
@@ -122,7 +122,7 @@ export default function ShowcaseHUD() {
             <div className="flex flex-col">
               <AnimatedText 
                 text="Interactive_Layer" 
-                className="text-white/40 font-mono text-[9px] uppercase tracking-[0.4em] mb-1" 
+                className="text-white/40 font-raleway text-[9px] uppercase tracking-[0.4em] mb-1" 
                 stagger={0.015}
                 delay={0.2}
               />
@@ -214,7 +214,7 @@ export default function ShowcaseHUD() {
                 transition={{ delay: 1, type: 'spring' }}
                 className={`w-2 h-2 rounded-full ${isIframeActive ? 'bg-[#B08E68] shadow-[0_0_8px_#B08E68]' : 'bg-red-500/40'}`} 
               />
-              <span className="text-[10px] text-white/50 group-hover:text-white font-mono uppercase tracking-widest transition-colors">
+              <span className="text-[10px] text-white/50 group-hover:text-white font-raleway uppercase tracking-widest transition-colors">
                 <AnimatedText 
                   text={isIframeActive ? 'Stream_Active' : 'Awaiting_Signal'} 
                   stagger={0.015}

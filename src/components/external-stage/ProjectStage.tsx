@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect, memo } from 'react';
 import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useStore } from '@/utils/store';
 import gsap from 'gsap';
@@ -18,13 +18,13 @@ interface ProjectStageProps {
   bgColor: string;
 }
 
-export default function ProjectStage({ id, url, title, subtitle, bgColor }: ProjectStageProps) {
+const ProjectStage = memo(function ProjectStage({ id, url, title, subtitle, bgColor }: ProjectStageProps) {
   const [isIframeLoaded, setIsIframeLoaded] = useState(false);
-  const setIsIframeActive = useStore((state) => state.setIsIframeActive);
-  const setShowcaseProject = useStore((state) => state.setShowcaseProject);
-  const setIsScenePaused = useStore((state) => state.setIsScenePaused);
-  const activeIframeId = useStore((state) => state.activeIframeId);
-  const setActiveIframeId = useStore((state) => state.setActiveIframeId);
+  const setIsIframeActive  = useStore((s) => s.setIsIframeActive);
+  const setShowcaseProject = useStore((s) => s.setShowcaseProject);
+  const setIsScenePaused   = useStore((s) => s.setIsScenePaused);
+  const activeIframeId     = useStore((s) => s.activeIframeId);
+  const setActiveIframeId  = useStore((s) => s.setActiveIframeId);
   
   const [isMobile, setIsMobile] = useState(false);
   const [isPointerEnabled, setIsPointerEnabled] = useState(false);
@@ -161,7 +161,7 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
           backgroundColor: bgColor,
           willChange: 'transform',
           transform: 'translateZ(0)',
-          boxShadow: '0 0 120px rgba(0,0,0,0.9), inset 0 0 100px rgba(255,255,255,0.02)'
+          boxShadow: '0 0 120px rgba(0,0,0,0.95), inset 0 0 80px rgba(176,142,104,0.015)',
         }}
       >
         
@@ -176,8 +176,8 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
             className="w-full h-full"
             style={{
               backgroundImage: `
-                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+                linear-gradient(rgba(176,142,104,0.04) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(176,142,104,0.04) 1px, transparent 1px)
               `,
               backgroundSize: '60px 60px',
               transform: `translate(${parallaxX.get() * 0.5}px, ${parallaxY.get() * 0.5}px)`
@@ -224,10 +224,10 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
           animate={{ opacity: localProgress > 0.8 ? 1 : 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-          <div className="absolute top-0 bottom-0 left-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
-          <div className="absolute top-0 bottom-0 right-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+          <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(176,142,104,0.35), transparent)' }} />
+          <div className="absolute bottom-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(176,142,104,0.35), transparent)' }} />
+          <div className="absolute top-0 bottom-0 left-0 w-px" style={{ background: 'linear-gradient(180deg, transparent, rgba(176,142,104,0.35), transparent)' }} />
+          <div className="absolute top-0 bottom-0 right-0 w-px" style={{ background: 'linear-gradient(180deg, transparent, rgba(176,142,104,0.35), transparent)' }} />
         </motion.div>
 
         {/* ENTERPRISE JIT IFRAME */}
@@ -240,7 +240,11 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
               exit={{ opacity: 0, scale: 0.98 }}
               transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="absolute inset-0 z-0"
-              style={{ backgroundColor: bgColor }}
+              style={{
+                backgroundColor: bgColor,
+                willChange: 'transform',
+                transform: 'translateZ(0)',
+              }}
             >
               <iframe
                 src={url}
@@ -259,70 +263,57 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.6 }}
                   >
-                    <div className="flex flex-col items-center space-y-6">
-                      {/* Spinning Ring Loader */}
-                      <div className="relative w-24 h-24">
+                    <div className="flex flex-col items-center" style={{ gap: '28px' }}>
+                      {/* Gold ring loader */}
+                      <div className="relative w-20 h-20">
                         <motion.div
-                          className="absolute inset-0 rounded-full border border-white/5"
+                          className="absolute inset-0 rounded-full"
+                          style={{ border: '1px solid rgba(176,142,104,0.15)' }}
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                          transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
                         />
                         <motion.div
-                          className="absolute inset-2 rounded-full border-t border-white/40"
-                          animate={{ rotate: -360 }}
-                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-                        />
-                        <motion.div
-                          className="absolute inset-4 rounded-full border-r border-white/60"
+                          className="absolute inset-2 rounded-full"
+                          style={{ borderTop: '1px solid rgba(176,142,104,0.7)', borderRight: '1px solid transparent', borderBottom: '1px solid transparent', borderLeft: '1px solid transparent' }}
                           animate={{ rotate: 360 }}
-                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                          transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
                         />
-                        
-                        {/* Pulsing Center */}
                         <motion.div
-                          className="absolute inset-0 m-auto w-3 h-3 rounded-full bg-white/80"
-                          animate={{ 
-                            scale: [1, 1.4, 1],
-                            opacity: [0.8, 1, 0.8]
-                          }}
+                          className="absolute inset-0 m-auto w-2 h-2 rounded-full"
+                          style={{ background: '#B08E68' }}
+                          animate={{ scale: [1, 1.5, 1], opacity: [0.6, 1, 0.6] }}
                           transition={{ duration: 2, repeat: Infinity }}
                         />
                       </div>
-                      
-                      {/* Loading Text */}
-                      <motion.div 
-                        className="flex flex-col items-center space-y-2"
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 }}
-                      >
-                        <motion.span 
-                          className="text-[11px] text-white/30 font-mono uppercase tracking-[0.5em]"
-                          animate={{ opacity: [0.3, 0.8, 0.3] }}
-                          transition={{ duration: 2, repeat: Infinity }}
+                      {/* Typography — Courier Prime enforced via font-mono */}
+                      <div className="flex flex-col items-center" style={{ gap: '6px' }}>
+                        <motion.span
+                          style={{
+                            fontFamily: "var(--font-raleway), sans-serif",
+                            fontSize: '9px', letterSpacing: '0.5em',
+                            textTransform: 'uppercase', color: 'rgba(176,142,104,0.7)',
+                          }}
+                          animate={{ opacity: [0.4, 1, 0.4] }}
+                          transition={{ duration: 2.5, repeat: Infinity }}
                         >
                           Initializing Portal
                         </motion.span>
-                        <span className="text-[9px] text-white/15 font-mono uppercase tracking-[0.3em]">
+                        <span style={{
+                          fontFamily: "var(--font-raleway), sans-serif",
+                          fontSize: '8px', letterSpacing: '0.3em',
+                          textTransform: 'uppercase', color: 'rgba(255,255,255,0.18)',
+                        }}>
                           {title}
                         </span>
-                      </motion.div>
-
-                      {/* Progress Dots */}
-                      <div className="flex space-x-2">
+                      </div>
+                      {/* Gold progress dots */}
+                      <div style={{ display: 'flex', gap: '6px' }}>
                         {[0, 1, 2].map((i) => (
                           <motion.div
                             key={i}
-                            className="w-1.5 h-1.5 rounded-full bg-white/40"
-                            animate={{ 
-                              scale: [1, 1.4, 1],
-                              opacity: [0.4, 1, 0.4]
-                            }}
-                            transition={{
-                              duration: 1.5,
-                              repeat: Infinity,
-                              delay: i * 0.2
-                            }}
+                            style={{ width: '4px', height: '4px', borderRadius: '50%', background: '#B08E68' }}
+                            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
+                            transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.18 }}
                           />
                         ))}
                       </div>
@@ -343,7 +334,17 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
           }}
         >
           <motion.div 
-            className="flex flex-col items-end font-mono backdrop-blur-sm bg-black/10 p-4 rounded-lg border border-white/5"
+            style={{
+              fontFamily: "var(--font-raleway), sans-serif",
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              background: 'rgba(0,0,0,0.55)',
+              padding: '14px 16px',
+              borderRadius: '4px',                              // brutalist — near-square
+              border: '1px solid rgba(176,142,104,0.2)',
+              boxShadow: 'none',                                // no soft shadows
+              willChange: 'transform',
+            }}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 0.6, x: 0 }}
             transition={{ delay: 0.5, duration: 0.8 }}
@@ -398,20 +399,30 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
               exit={{ opacity: 0 }}
             >
               <div className="text-center">
-                <motion.h3 
-                  className="text-white font-black text-5xl md:text-7xl uppercase tracking-tighter mb-2"
+                <motion.h3
                   style={{
-                    textShadow: '0 0 40px rgba(0,0,0,0.8)'
+                    fontFamily: "var(--font-raleway), sans-serif",
+                    fontSize: 'clamp(40px, 7vw, 88px)',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '-0.025em',
+                    color: '#E8E4DE',
+                    textShadow: '0 0 60px rgba(0,0,0,0.9)',
                   }}
                 >
                   {title}
                 </motion.h3>
                 {subtitle && (
-                  <motion.p 
-                    className="text-white/50 font-mono text-xs md:text-sm tracking-[0.3em] uppercase"
+                  <motion.p
                     initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 0.6, y: 0 }}
+                    animate={{ opacity: 0.5, y: 0 }}
                     transition={{ delay: 0.2 }}
+                    style={{
+                      fontFamily: "var(--font-raleway), sans-serif",
+                      fontSize: '10px', letterSpacing: '0.38em',
+                      textTransform: 'uppercase', color: 'rgba(176,142,104,0.7)',
+                      marginTop: '12px',
+                    }}
                   >
                     {subtitle}
                   </motion.p>
@@ -425,28 +436,32 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
         <div className="absolute inset-0 pointer-events-none z-[7]">
           {/* Top Left */}
           <motion.div 
-            className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-white/10"
+            className="absolute top-0 left-0 w-20 h-20"
+            style={{ borderTop: '1px solid rgba(176,142,104,0.25)', borderLeft: '1px solid rgba(176,142,104,0.25)' }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
             transition={{ duration: 0.6 }}
           />
           {/* Top Right */}
           <motion.div 
-            className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-white/10"
+            className="absolute top-0 right-0 w-20 h-20"
+            style={{ borderTop: '1px solid rgba(176,142,104,0.25)', borderRight: '1px solid rgba(176,142,104,0.25)' }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.1 }}
           />
           {/* Bottom Left */}
           <motion.div 
-            className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-white/10"
+            className="absolute bottom-0 left-0 w-20 h-20"
+            style={{ borderBottom: '1px solid rgba(176,142,104,0.25)', borderLeft: '1px solid rgba(176,142,104,0.25)' }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           />
           {/* Bottom Right */}
           <motion.div 
-            className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-white/10"
+            className="absolute bottom-0 right-0 w-20 h-20"
+            style={{ borderBottom: '1px solid rgba(176,142,104,0.25)', borderRight: '1px solid rgba(176,142,104,0.25)' }}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
@@ -456,4 +471,6 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
       </motion.div>
     </div>
   );
-}
+});
+
+export default ProjectStage;

@@ -48,12 +48,12 @@ export default function GlobalCanvas({ children }: GlobalCanvasProps) {
                 dpr={[1, 2]} 
                 gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
             >
-                <color attach="background" args={['#050505']} />
+                <color attach="background" args={['#000000']} />
                 
                 {/* Cinematic Lighting setup */}
                 <ambientLight intensity={0.2} color="#ffffff" />
                 <directionalLight position={[10, 10, 5]} intensity={3} color="#FFF5E6" />
-                <pointLight position={[-5, 5, -5]} intensity={5} color="#8B5CF6" />
+                <pointLight position={[-5, 5, -5]} intensity={2} color="#ffffff" />
                 <spotLight position={[-10, -5, 10]} intensity={4} color="#ffffff" angle={0.4} penumbra={1} />
                 
                 <CameraController />

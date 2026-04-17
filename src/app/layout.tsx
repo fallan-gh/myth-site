@@ -4,6 +4,7 @@ import SmoothScroll from '@/components/layout/SmoothScroll';
 import GlobalCanvas from '@/components/canvas/GlobalCanvas';
 import DynamicMain from '@/components/layout/DynamicMain';
 import WhatsAppConcierge from '@/components/ui/WhatsAppConcierge';
+import Cursor from '@/components/ui/Cursor';
 import { Metadata, Viewport } from 'next';
 import { ReactNode } from 'react';
 import { Inter, Raleway } from 'next/font/google';
@@ -51,6 +52,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </DynamicMain>
 
           <WhatsAppConcierge />
+          <Cursor />
 
           {/* WebGL 3D Layer */}
           <GlobalCanvas />

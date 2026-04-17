@@ -1,72 +1,75 @@
 "use client";
 
-import React from 'react';
-import { motion } from 'framer-motion';
+import React, { useMemo } from 'react';
+import { motion, Variants } from 'framer-motion';
 
 interface AnimatedTextProps {
   text: string;
   className?: string;
   stagger?: number;
   delay?: number;
-  once?: boolean;
+  /** 'chars' (default) | 'words' */
+  splitBy?: 'chars' | 'words';
 }
 
-const AnimatedText: React.FC<AnimatedTextProps> = ({ 
-  text, 
-  className = "", 
-  stagger = 0.02, 
+const CHAR_VARIANTS: Variants = {
+  hidden: { y: '105%' },
+  visible: (i: number) => ({
+    y: '0%',
+    transition: {
+      delay: i,
+      duration: 0.82,
+      ease: [0.16, 1, 0.3, 1],
+    },
+  }),
+};
+
+const AnimatedText = React.memo(function AnimatedText({
+  text,
+  className = '',
+  stagger = 0.022,
   delay = 0,
-  once = true 
-}) => {
-  // Split text into characters, keeping spaces as &nbsp;
-  const characters = text.split("").map(char => char === " " ? "\u00A0" : char);
-
-  // Animation variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: stagger,
-        delayChildren: delay,
-      },
-    },
-  };
-
-  const charVariants = {
-    hidden: { y: "100%" },
-    visible: {
-      y: 0,
-      transition: {
-        duration: 0.8,
-        ease: [0.16, 1, 0.3, 1], // Premium heavy easing curve
-      },
-    },
-  };
+  splitBy = 'chars',
+}: AnimatedTextProps) {
+  const tokens = useMemo(
+    () => (splitBy === 'words' ? text.split(' ') : text.split('')),
+    [text, splitBy]
+  );
 
   return (
-    <motion.span
-      className={`inline-block ${className}`}
-      variants={containerVariants}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once }}
+    <span
+      aria-label={text}
+      className={className}
+      style={{ display: 'inline-flex', flexWrap: 'wrap', gap: splitBy === 'words' ? '0.25em' : 0 }}
     >
-      {characters.map((char, index) => (
+      {tokens.map((token, i) => (
         <span
-          key={`${char}-${index}`}
-          className="inline-block overflow-hidden align-bottom"
+          key={i}
+          style={{
+            display: 'inline-block',
+            overflow: 'hidden',
+            // Whitespace char needs explicit width
+            ...(token === ' ' ? { width: '0.25em' } : {}),
+          }}
         >
-          <motion.span 
-            className="inline-block"
-            variants={charVariants}
+          <motion.span
+            display="inline-block"
+            variants={CHAR_VARIANTS}
+            initial="hidden"
+            animate="visible"
+            custom={delay + i * stagger}
+            style={{
+              display: 'inline-block',
+              willChange: 'transform',
+              transform: 'translateZ(0)',
+            }}
           >
-            {char}
+            {token === ' ' ? '\u00A0' : token}
           </motion.span>
         </span>
       ))}
-    </motion.span>
+    </span>
   );
-};
+});
 
 export default AnimatedText;
