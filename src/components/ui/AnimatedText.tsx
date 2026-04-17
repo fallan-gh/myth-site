@@ -55,7 +55,6 @@ const AnimatedText = React.memo(function AnimatedText({
           }}
         >
           <motion.span
-            display="inline-block"
             variants={CHAR_VARIANTS}
             initial="hidden"
             animate="visible"
