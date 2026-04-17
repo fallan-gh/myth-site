@@ -20,6 +20,7 @@ interface MythStore {
   isIframeActive: boolean;
   isScenePaused: boolean;
   activeIframeId: string | null;
+  mousePos: { x: number; y: number };
 
   setScrollProgress: (v: number) => void;
   setActiveSection: (v: number) => void;
@@ -34,6 +35,7 @@ interface MythStore {
   setIsIframeActive: (v: boolean) => void;
   setIsScenePaused: (v: boolean) => void;
   setActiveIframeId: (v: string | null) => void;
+  setMousePos: (v: { x: number; y: number }) => void;
 }
 
 export const useStore = create<MythStore>((set) => ({
@@ -49,6 +51,7 @@ export const useStore = create<MythStore>((set) => ({
   isIframeActive: false,
   isScenePaused: false,
   activeIframeId: null,
+  mousePos: { x: 0, y: 0 },
 
   setScrollProgress: (v) => set({ scrollProgress: v }),
   setActiveSection: (v) => set({ activeSection: v }),
@@ -62,4 +65,5 @@ export const useStore = create<MythStore>((set) => ({
   setIsIframeActive: (v) => set({ isIframeActive: v }),
   setIsScenePaused: (v) => set({ isScenePaused: v }),
   setActiveIframeId: (v) => set({ activeIframeId: v }),
+  setMousePos: (v) => set({ mousePos: v }),
 }));

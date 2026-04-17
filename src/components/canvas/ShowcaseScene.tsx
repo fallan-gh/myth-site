@@ -33,14 +33,27 @@ const ShowcaseScene = React.memo(() => {
   }, [showcaseProject]);
 
   const isScenePaused = useStore((state) => state.isScenePaused);
+  const mousePos = useStore((state) => state.mousePos);
   const primaryRef = useRef<THREE.Color>(colors.primary);
   const accentRef = useRef<THREE.Color>(colors.accent);
 
   useFrame((state, delta) => {
-    if (isScenePaused) return; // Hibernation: Zero GPU draw for meshes
+    if (isScenePaused) return; 
     
     if (groupRef.current) {
-      groupRef.current.rotation.y += delta * 0.1;
+      // Axial continuous rotation
+      groupRef.current.rotation.y += delta * 0.15;
+      
+      // Mouse Parallax Interaction
+      const targetRotationX = mousePos.y * 0.15;
+      const targetRotationY = mousePos.x * 0.15;
+      
+      groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetRotationX, 0.05);
+      groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, groupRef.current.rotation.y + targetRotationY, 0.05);
+
+      // Mouse Parallax Position
+      groupRef.current.position.x = THREE.MathUtils.lerp(groupRef.current.position.x, mousePos.x * 0.5, 0.05);
+      groupRef.current.position.y = THREE.MathUtils.lerp(groupRef.current.position.y, -mousePos.y * 0.5, 0.05);
       
       // Smoothly lerp colors towards target palette
       primaryRef.current.lerp(colors.primary, 0.05);

@@ -52,7 +52,8 @@ export default function GlobalCanvas({ children }: GlobalCanvasProps) {
                 
                 {/* Cinematic Lighting setup */}
                 <ambientLight intensity={0.2} color="#ffffff" />
-                <directionalLight position={[10, 10, 5]} intensity={3} color="#B08E68" />
+                <directionalLight position={[10, 10, 5]} intensity={3} color="#FFF5E6" />
+                <pointLight position={[-5, 5, -5]} intensity={5} color="#8B5CF6" />
                 <spotLight position={[-10, -5, 10]} intensity={4} color="#ffffff" angle={0.4} penumbra={1} />
                 
                 <CameraController />

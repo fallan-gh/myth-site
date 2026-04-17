@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useMotionValue, useTransform, useSpring } from 'framer-motion';
 import { useStore } from '@/utils/store';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger';
@@ -15,7 +15,7 @@ interface ProjectStageProps {
   url: string;
   title: string;
   subtitle?: string;
-  bgColor: string; // Branded fallback color
+  bgColor: string;
 }
 
 export default function ProjectStage({ id, url, title, subtitle, bgColor }: ProjectStageProps) {
@@ -29,12 +29,27 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
   const [isMobile, setIsMobile] = useState(false);
   const [isPointerEnabled, setIsPointerEnabled] = useState(false);
   const [localProgress, setLocalProgress] = useState(0);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   
   const containerRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const unmountTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Sync Hibernation: Only pause if scale is 1 AND iframe is loaded
+  // Advanced Motion Values for Parallax
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  
+  const parallaxX = useSpring(useTransform(mouseX, [-0.5, 0.5], [-20, 20]), {
+    stiffness: 150,
+    damping: 30
+  });
+  
+  const parallaxY = useSpring(useTransform(mouseY, [-0.5, 0.5], [-10, 10]), {
+    stiffness: 150,
+    damping: 30
+  });
+
+  // Sync Hibernation
   useEffect(() => {
     if (localProgress === 1 && isIframeLoaded) {
       setIsScenePaused(true);
@@ -43,9 +58,27 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
     }
   }, [localProgress, isIframeLoaded, setIsScenePaused]);
 
+  // Mouse Movement Handler
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPointerEnabled) return;
+      
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      
+      const x = (clientX / innerWidth) - 0.5;
+      const y = (clientY / innerHeight) - 0.5;
+      
+      mouseX.set(x);
+      mouseY.set(y);
+      setMousePosition({ x: clientX, y: clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, [isPointerEnabled, mouseX, mouseY]);
+
   useLayoutEffect(() => {
-    // [MOBILE OPTIMIZATION]: We now allow GSAP on mobile for the JIT logic, 
-    // but we can reduce animation complexity if needed.
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({
         scrollTrigger: {
@@ -97,7 +130,7 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
           scale: 1,
           rotateX: 0,
           borderRadius: '0rem',
-          ease: "none"
+          ease: "power2.out"
         }
       );
     }, containerRef);
@@ -119,26 +152,93 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
       ref={containerRef}
       className="relative w-full h-[180vh] flex items-center justify-center overflow-visible z-10"
     >
-      <div 
+      <motion.div 
         ref={stageRef}
-        className={`relative w-full h-screen sticky top-0 overflow-hidden border border-white/5 shadow-[0_0_120px_rgba(0,0,0,0.9)] 
+        className={`relative w-full h-screen sticky top-0 overflow-hidden border border-white/10 
           ${isPointerEnabled ? 'pointer-events-auto' : 'pointer-events-none'}
         `}
         style={{ 
-          backgroundColor: bgColor, // Branded Splash Color
+          backgroundColor: bgColor,
           willChange: 'transform',
-          transform: 'translateZ(0)' // Hardware Acceleration
+          transform: 'translateZ(0)',
+          boxShadow: '0 0 120px rgba(0,0,0,0.9), inset 0 0 100px rgba(255,255,255,0.02)'
         }}
       >
         
-        {/* ENTERPRISE JIT IFRAME (Strict Mutual Exclusion + No Void) */}
+        {/* Animated Grid Overlay */}
+        <motion.div 
+          className="absolute inset-0 pointer-events-none z-[5]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: localProgress > 0.5 ? 0.03 : 0.08 }}
+          transition={{ duration: 1 }}
+        >
+          <div 
+            className="w-full h-full"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)
+              `,
+              backgroundSize: '60px 60px',
+              transform: `translate(${parallaxX.get() * 0.5}px, ${parallaxY.get() * 0.5}px)`
+            }}
+          />
+        </motion.div>
+
+        {/* Floating Particles */}
+        <div className="absolute inset-0 pointer-events-none z-[4] overflow-hidden">
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={i}
+              className="absolute w-1 h-1 bg-white/20 rounded-full"
+              initial={{ 
+                x: Math.random() * 100 + '%',
+                y: Math.random() * 100 + '%',
+                scale: Math.random() * 0.5 + 0.5
+              }}
+              animate={{
+                y: [
+                  `${Math.random() * 100}%`,
+                  `${Math.random() * 100}%`
+                ],
+                x: [
+                  `${Math.random() * 100}%`,
+                  `${Math.random() * 100}%`
+                ],
+                opacity: [0, 0.6, 0]
+              }}
+              transition={{
+                duration: Math.random() * 10 + 15,
+                repeat: Infinity,
+                ease: "linear",
+                delay: Math.random() * 5
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Premium Gradient Borders */}
+        <motion.div 
+          className="absolute inset-0 pointer-events-none z-[6]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: localProgress > 0.8 ? 1 : 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+          <div className="absolute top-0 bottom-0 left-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+          <div className="absolute top-0 bottom-0 right-0 w-px bg-gradient-to-b from-transparent via-white/20 to-transparent" />
+        </motion.div>
+
+        {/* ENTERPRISE JIT IFRAME */}
         <AnimatePresence mode="wait">
           {isMounted && (
             <motion.div
               key={`${id}-iframe-mount`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              initial={{ opacity: 0, scale: 0.98 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
               className="absolute inset-0 z-0"
               style={{ backgroundColor: bgColor }}
             >
@@ -150,35 +250,210 @@ export default function ProjectStage({ id, url, title, subtitle, bgColor }: Proj
                 loading="eager"
               />
               
-              {/* Loader Overlay (Matches bgColor) */}
-              {!isIframeLoaded && (
-                <div className="absolute inset-0 flex items-center justify-center z-10" style={{ backgroundColor: bgColor }}>
-                  <div className="flex flex-col items-center space-y-4">
-                    <div className="w-12 h-12 rounded-full border border-white/10 border-t-white/60 animate-spin" />
-                    <div className="flex flex-col items-center">
-                      <span className="text-[10px] text-white/20 font-mono uppercase tracking-[0.4em] animate-pulse">Establishing Bridge...</span>
-                      <span className="text-[8px] text-white/10 font-mono uppercase tracking-[0.2em]">Safety Buffers Active</span>
+              {/* Enhanced Loader */}
+              <AnimatePresence>
+                {!isIframeLoaded && (
+                  <motion.div 
+                    className="absolute inset-0 flex items-center justify-center z-10" 
+                    style={{ backgroundColor: bgColor }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.6 }}
+                  >
+                    <div className="flex flex-col items-center space-y-6">
+                      {/* Spinning Ring Loader */}
+                      <div className="relative w-24 h-24">
+                        <motion.div
+                          className="absolute inset-0 rounded-full border border-white/5"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                        />
+                        <motion.div
+                          className="absolute inset-2 rounded-full border-t border-white/40"
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+                        />
+                        <motion.div
+                          className="absolute inset-4 rounded-full border-r border-white/60"
+                          animate={{ rotate: 360 }}
+                          transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                        />
+                        
+                        {/* Pulsing Center */}
+                        <motion.div
+                          className="absolute inset-0 m-auto w-3 h-3 rounded-full bg-white/80"
+                          animate={{ 
+                            scale: [1, 1.4, 1],
+                            opacity: [0.8, 1, 0.8]
+                          }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
+                      </div>
+                      
+                      {/* Loading Text */}
+                      <motion.div 
+                        className="flex flex-col items-center space-y-2"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                      >
+                        <motion.span 
+                          className="text-[11px] text-white/30 font-mono uppercase tracking-[0.5em]"
+                          animate={{ opacity: [0.3, 0.8, 0.3] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        >
+                          Initializing Portal
+                        </motion.span>
+                        <span className="text-[9px] text-white/15 font-mono uppercase tracking-[0.3em]">
+                          {title}
+                        </span>
+                      </motion.div>
+
+                      {/* Progress Dots */}
+                      <div className="flex space-x-2">
+                        {[0, 1, 2].map((i) => (
+                          <motion.div
+                            key={i}
+                            className="w-1.5 h-1.5 rounded-full bg-white/40"
+                            animate={{ 
+                              scale: [1, 1.4, 1],
+                              opacity: [0.4, 1, 0.4]
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              delay: i * 0.2
+                            }}
+                          />
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Global HUD Sync Decals */}
-        <div className="absolute top-10 right-10 z-30 pointer-events-none opacity-40">
-          <div className="flex flex-col items-end font-mono">
-            <div className="flex items-center space-x-2">
-               <div className={`w-1 h-1 rounded-full ${isIframeLoaded ? 'bg-cyan-500' : 'bg-red-500'} animate-pulse`} />
-               <span className="text-[8px] text-white uppercase tracking-[0.2em] font-bold">Instance: {id}</span>
+        {/* Enhanced HUD with Parallax */}
+        <motion.div 
+          className="absolute top-10 right-10 z-30 pointer-events-none"
+          style={{
+            x: parallaxX,
+            y: parallaxY
+          }}
+        >
+          <motion.div 
+            className="flex flex-col items-end font-mono backdrop-blur-sm bg-black/10 p-4 rounded-lg border border-white/5"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 0.6, x: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
+          >
+            <div className="flex items-center space-x-3 mb-2">
+              <motion.div 
+                className={`w-2 h-2 rounded-full ${isIframeLoaded ? 'bg-emerald-400' : 'bg-red-500'}`}
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  opacity: [0.6, 1, 0.6]
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <span className="text-[9px] text-white/70 uppercase tracking-[0.25em] font-bold">
+                {id}
+              </span>
             </div>
-            <span className="text-[8px] text-white/50 uppercase tracking-widest leading-none">
-              GPU HIBERNATION: {useStore.getState().isScenePaused ? 'LOCKED' : 'READY'}
-            </span>
-          </div>
+            
+            {/* Progress Bar */}
+            <div className="w-32 h-px bg-white/10 mb-2 overflow-hidden">
+              <motion.div 
+                className="h-full bg-gradient-to-r from-white/40 to-white/80"
+                initial={{ width: '0%' }}
+                animate={{ width: `${localProgress * 100}%` }}
+                transition={{ duration: 0.3 }}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <span className="text-[7px] text-white/40 uppercase tracking-widest">
+                GPU: {useStore.getState().isScenePaused ? 'HIBERNATING' : 'ACTIVE'}
+              </span>
+              <motion.div
+                animate={{ rotate: useStore.getState().isScenePaused ? 0 : 360 }}
+                transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              >
+                <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-white/30">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.2"/>
+                </svg>
+              </motion.div>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* Project Title Overlay (Only shows when not fully scaled) */}
+        <AnimatePresence>
+          {localProgress < 0.95 && (
+            <motion.div
+              className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 - localProgress }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="text-center">
+                <motion.h3 
+                  className="text-white font-black text-5xl md:text-7xl uppercase tracking-tighter mb-2"
+                  style={{
+                    textShadow: '0 0 40px rgba(0,0,0,0.8)'
+                  }}
+                >
+                  {title}
+                </motion.h3>
+                {subtitle && (
+                  <motion.p 
+                    className="text-white/50 font-mono text-xs md:text-sm tracking-[0.3em] uppercase"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 0.6, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {subtitle}
+                  </motion.p>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Corner Accents */}
+        <div className="absolute inset-0 pointer-events-none z-[7]">
+          {/* Top Left */}
+          <motion.div 
+            className="absolute top-0 left-0 w-20 h-20 border-t-2 border-l-2 border-white/10"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
+            transition={{ duration: 0.6 }}
+          />
+          {/* Top Right */}
+          <motion.div 
+            className="absolute top-0 right-0 w-20 h-20 border-t-2 border-r-2 border-white/10"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          />
+          {/* Bottom Left */}
+          <motion.div 
+            className="absolute bottom-0 left-0 w-20 h-20 border-b-2 border-l-2 border-white/10"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          />
+          {/* Bottom Right */}
+          <motion.div 
+            className="absolute bottom-0 right-0 w-20 h-20 border-b-2 border-r-2 border-white/10"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: localProgress > 0.9 ? 0.3 : 0, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          />
         </div>
-      </div>
+
+      </motion.div>
     </div>
   );
 }

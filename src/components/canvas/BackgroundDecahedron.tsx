@@ -16,32 +16,59 @@ export default function BackgroundDecahedron() {
   // Load the GLB model
   const { scene } = useGLTF('/3d/decaedro.glb');
 
+  // CLEANUP: Ensure no wireframe meshes are visible from the original GLB
+  React.useEffect(() => {
+    scene.traverse((obj) => {
+      if (obj.name.toLowerCase().includes('wireframe') || obj.type === 'LineSegments' || obj.type === 'Line') {
+        obj.visible = false;
+      }
+      if ((obj as THREE.Mesh).isMesh) {
+          const mesh = obj as THREE.Mesh;
+          // Upgrade to Solid Aged Gold material per directives
+          mesh.material = new THREE.MeshPhysicalMaterial({
+            color: new THREE.Color('#B08E68'),
+            metalness: 1.0, 
+            roughness: 0.35,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.1,
+            envMapIntensity: 2.0
+          });
+      }
+    });
+  }, [scene]);
+
   useFrame((state, delta) => {
-    // [HARDCORE HIBERNATION]: Skip all calculations if user is viewing an iframe
     if (isScenePaused) return;
 
-    // Center the Decahedron rotation on its own axis
     if (meshRef.current) {
-        meshRef.current.rotation.y += delta * 0.2;
-        meshRef.current.rotation.x += delta * 0.1;
+        meshRef.current.rotation.y += delta * 0.12;
+        meshRef.current.rotation.x += delta * 0.05;
     }
   });
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Main Decahedron Asset (Solid Core) */}
+      {/* Golden Rim Lights to catch the edges */}
+      <spotLight 
+        position={[5, 5, -5]} 
+        intensity={30} 
+        color="#B08E68" 
+        angle={0.6} 
+        penumbra={0.5} 
+        castShadow 
+      />
+      <pointLight 
+        position={[-10, -5, -10]} 
+        intensity={20} 
+        color="#B08E68" 
+      />
+
+      {/* Main Decahedron Asset (Lux Glass Core) */}
       <primitive 
           ref={meshRef}
           object={scene} 
-          scale={2.2} 
-      >
-          <meshStandardMaterial 
-              metalness={0.9} 
-              roughness={0.15} 
-              color="#1a1a1a" 
-              envMapIntensity={2}
-          />
-      </primitive>
+          scale={2.6} 
+      />
     </group>
   );
 }
