@@ -10,6 +10,7 @@ interface AnimatedTextProps {
   delay?: number;
   /** 'chars' (default) | 'words' */
   splitBy?: 'chars' | 'words';
+  style?: React.CSSProperties;
 }
 
 const CHAR_VARIANTS: Variants = {
@@ -30,6 +31,7 @@ const AnimatedText = React.memo(function AnimatedText({
   stagger = 0.022,
   delay = 0,
   splitBy = 'chars',
+  style = {},
 }: AnimatedTextProps) {
   const tokens = useMemo(
     () => (splitBy === 'words' ? text.split(' ') : text.split('')),
@@ -40,7 +42,7 @@ const AnimatedText = React.memo(function AnimatedText({
     <span
       aria-label={text}
       className={className}
-      style={{ display: 'inline-flex', flexWrap: 'wrap', gap: splitBy === 'words' ? '0.25em' : 0 }}
+      style={{ display: 'inline-flex', flexWrap: 'wrap', gap: splitBy === 'words' ? '0.25em' : 0, ...style }}
     >
       {tokens.map((token, i) => (
         <span
